@@ -1,0 +1,48 @@
+---
+title: "Chamois Horn size in Eastern Italian Alps"
+author: "Franz Johann, Liangwen He, Matthias Theobald"
+date: "4. Dezember 2015"
+output: ioslides_presentation
+---
+
+## Research Question
+```{r, echo=FALSE, include=FALSE}
+library(mgcv)
+load("db_chamois1.RData")
+```
+We wanted to explore how male and female Chamois react differently on environmental conditions regarding their investment in horn growth.
+
+**IMAGE**
+
+## Data
+
+- Dataset with 2679 observations of 101 variables
+- Horn lengths of hunted yearlings
+
+**Image of live cycle**
+
+- Clustered in 5 administrative areas with 50 smaller councils
+- Coordinates of the councils where each yearling was shot
+
+    - 
+
+## Data Visualization
+
+```{r, echo=FALSE}
+m1 <- gam(horn~s(x.council, y.council), data=db_chamois1)
+vis.gam(m1, plot.type = "contour", main="Horn size", xlab="x coords", ylab="y coords")
+
+# distribution of councils by admin. area
+points(db_chamois1$x.council, db_chamois1$y.council, col=db_chamois1$area_cod, pch=20, cex=1.5)
+legend("bottomright", legend=paste("Area", unique(db_chamois1$area_cod)), col=unique(db_chamois1$area_cod), pch=20)
+# no data in south-east and north-west!
+```
+
+## Environmental Data
+
+- Weather data for different seasons:
+    - Temperature
+    - Precepitation
+    - Snow cover duration and height
+
+

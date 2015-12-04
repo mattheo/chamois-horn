@@ -6,6 +6,9 @@
 # Ignore R History
 *.RHistory
 
+# Exclude Html
+*.html
+
 
 # Windows image file caches
 Thumbs.db
