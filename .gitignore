@@ -1,3 +1,12 @@
+# Ignore Data files
+*.RData
+*.csv
+*.xlsx
+
+# Ignore R History
+*.RHistory
+
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
