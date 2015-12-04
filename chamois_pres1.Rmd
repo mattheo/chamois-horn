@@ -23,7 +23,6 @@ We wanted to explore how male and female Chamois react differently on environmen
     - Horn length
     - Weight
     - Sex
-
 - Other data aggregated at either council level (50 councils)
     - GIS data like elevation, aspect
     - Vegetation Index
@@ -32,14 +31,14 @@ We wanted to explore how male and female Chamois react differently on environmen
     - Substrate
 
 
-## Information about Chamois
+## Life History of killed Chamois
 
-__IMAGE__
+<img src="imgs/zeitleisteaus.jpg" width="800">
 
 - Shot during second year
 - Climate and vegetational information aggregated through seasons
 
-## Data Visualization - Spatial distribution of horn sizes
+## Data exploration - Spatial distribution of horn sizes
 
 ```{r, echo=FALSE}
 m1 <- gam(horn~s(x.council, y.council), data=db_chamois1)
@@ -51,3 +50,17 @@ legend("bottomright", legend=paste("Area", unique(db_chamois1$area_cod)), col=un
 # no data in south-east and north-west!
 ```
 
+## Data exploration - Visualization of Correlation
+
+<img src="imgs/Collinearity.jpeg" width="800">
+
+## Random Forest: Effect of predictors on horn size
+
+<img src="imgs/RF_male.jpeg" width="800">
+
+## Random Forest: Effect of predictors on horn size
+
+<img src="imgs/RF_female.jpeg" width="800">
+
+
+## Struggling with data
