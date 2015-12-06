@@ -14,7 +14,7 @@ load("db_chamois1.RData")
 
 We wanted to explore how male and female Chamois react differently on environmental conditions regarding their investment in horn growth.
 
-**IMAGE**
+<img src="imgs/chamois1.jpg" width="800">
 
 ## Dataset
 
@@ -64,3 +64,34 @@ legend("bottomright", legend=paste("Area", unique(db_chamois1$area_cod)), col=un
 
 
 ## Struggling with data
+
+<img src="imgs/data1.jpg" width="800">
+
+## Struggling with data
+
+<img src="imgs/data2.jpg" width="800">
+
+## Struggling with data
+
+<img src="imgs/data3.jpg" width="800">
+
+## Struggling with data
+
+<img src="imgs/data4.jpg" width="800">
+
+## Struggling with data
+
+<img src="imgs/data5.jpg" width="800">
+
+## Struggling with data
+
+<img src="imgs/data6.jpg" width="800">
+
+## Struggling with data
+
+<img src="imgs/data7.jpg" width="800">
+
+## Vielen Dank!
+
+<img src="imgs/chamois2.jpg" width="800">
+

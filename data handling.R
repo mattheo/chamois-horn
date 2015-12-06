@@ -14,3 +14,12 @@ outersect(colnames(db_chamois1), colnames(db_chamois2))
 
 # where are the data holes
 
+
+
+
+# data transfprmation
+with(db_chamois1, tapply(snow_winter, list(area_cod, year), mean)) # --> only 2 station, weather data in area1 are mixed
+
+with(db_chamois1, tapply(twinter.mean, list(area_cod, year), mean))
+
+with(db_chamois1, tapply(tspring1.mean, list(area_cod, year), mean)) # changed since 2009
