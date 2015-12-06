@@ -12,9 +12,11 @@ load("db_chamois1.RData")
 
 ## Research Question
 
-We wanted to explore how male and female Chamois react differently on environmental conditions regarding their investment in horn growth.
+How are male and female Chamois reacting differently on environmental conditions regarding their investment in horn growth?
 
-**IMAGE**
+<img src="imgs/chamois1.jpg" width="600", style="display: block;
+                                                margin-left: auto;
+                                                margin-right: auto">
 
 ## Dataset
 
@@ -56,11 +58,11 @@ legend("bottomright", legend=paste("Area", unique(db_chamois1$area_cod)), col=un
 
 ## Random Forest: Effect of predictors on horn size
 
-<img src="imgs/RF_male.jpeg" width="800">
+<img src="imgs/RF_male2.jpeg" width="800">
 
 ## Random Forest: Effect of predictors on horn size
 
-<img src="imgs/RF_female.jpeg" width="800">
+<img src="imgs/RF_female2.jpeg" width="800">
 
 
 ## Struggling with data
