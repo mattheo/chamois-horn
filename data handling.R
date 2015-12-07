@@ -31,11 +31,53 @@ db_chamois2$X.2 <- NULL
 db_chamois2$x_r <- NULL
 db_chamois2$y_r <- NULL
 
+# create new Database
 db <- merge(db_chamois1, db_chamois2, all.x=T)
+
+
+# delete all unnecessary columns
+drops <- c(
+    "exc.date2", # excel numeric date
+    "Julia.date", # year + Julian day
+    "date", # year # Julian day + random number
+    "x", # coordniates + small random step for spatial autocorrelation
+    "y", # same
+    "x2", # same
+    "y2", # same
+    "NS", # North-south facing component of aspect
+    "EO", # East-West facing component of aspect
+    "NWeight", # normalized weight
+    "Nhorn", # normalized horn length
+    "h_w", # ratio hor length to weight
+    "index" # Indice of above ratio
+)
+
+db <- db[, !names(db) %in% drops]
+head(db)
+
+
+
+# collinearity in elevation data
+cor(db[c("q_media", "q_min", "q_max")])
+db$q_range <- db$q_max - db$q_min
+with(db, cor(q_media, q_range))
+with(db, plot(q_media, q_range)) # not okay yet
+
+
+# collinearity of NAO and others
+cor.test(db$nao_w, db$twinter.mean2)
+cor.test(db$nao_w, db$twinter.min2)
+cor.test(db$nao_w, db$snow_winter2)
+
+cor.test(db$nao_d, db$snow_winter2)
+
+
 
 
 # what columns are new in the new data set?
 outersect(colnames(db_chamois1), colnames(db_chamois2))
+
+
 
 
 
