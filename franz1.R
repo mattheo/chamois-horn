@@ -73,7 +73,7 @@ max(Jday)-min(Jday)#timespan 117 days
 #simple models-----------------
 Julgam1<-gam(horn~s(Jday)+s(weight), data=db_chamois1)
 ?vis.gam
-vis.gam(Julgam1,plot.type="persp",theta=45,ticktype="detailed", main="horn~Jday +weight")
+vis.gam(Julgam1,plot.type="persp",theta=45, main="horn~Jday + weight",zlab="horn")
 summary(Julgam1)
 
 
@@ -81,7 +81,40 @@ Julgam2<-gam(horn~s(Jday, bs="cs")+s(weight,bs="cs"), data=db_chamois1)
 vis.gam(Julgam2,plot.type="persp",theta=45)
 
 Julgam3<-gam(weight~s(Jday)+f.sex, data=db_chamois1)
-vis.gam(Julgam3,plot.type="persp",theta=45, main="weight~Jday +sex",zlab="weight")
+vis.gam(Julgam3,plot.type="persp",theta=45, main="weight~Jday + sex",zlab="weight")
 summary(Julgam3)
+par(mfrow=c(1,1))
+plot(Julgam3)
+##################################  continue with merged set db  ############################################################
 
 
+db$data<-NULL#delete couumn containing data formate
+# male and female subsets------------------------------------------
+male_db<-subset(db,sex = 2)
+female_db<-subset(db,sex = 1)
+#scaled subsets---------------------------------------------------------------
+sc_male<-as.data.frame(scale(male_db))
+sc_female<-as.data.frame(scale(female_db))
+
+
+list(names(sc_female))
+
+#Randomforest NDVI
+library(randomForest)
+?randomForest
+#watch computing time n= 2000 
+RandomNDVI_male<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (MEAN_201) + (MEAN_217) + (MEAN_233) + (MEAN_249) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.summer1) + (ndvi.may1) + (ndvi.slop2) + (ndvi.maxincr2 ) + (ndvi.summer2) + (ndvi.may2) + (ndvi.may1.new) + (ndvi.may2.new), ntree=2000, data = sc_male)
+varImpPlot(RandomNDVI_male)
+
+RandomNDVI_female<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (MEAN_201) + (MEAN_217) + (MEAN_233) + (MEAN_249) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.summer1) + (ndvi.may1) + (ndvi.slop2) + (ndvi.maxincr2 ) + (ndvi.summer2) + (ndvi.may2) + (ndvi.may1.new) + (ndvi.may2.new), ntree=2000, data = sc_female)
+varImpPlot
+
+RandomNDVI_maleMEAN<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (MEAN_201) + (MEAN_217) + (MEAN_233) + (MEAN_249), ntree=2000, data = sc_male)
+varImpPlot(RandomNDVI_maleMEAN)
+
+RandomNDVI_femaleMEAN<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (MEAN_201) + (MEAN_217) + (MEAN_233) + (MEAN_249), ntree=2000, data = sc_female)
+varImpPlot(RandomNDVI_femaleMEAN)
+
+# NDVI Summer2, summer1, may1new, may2, MEAN 185 and MEAN 137 are the most important effects
+
+  
