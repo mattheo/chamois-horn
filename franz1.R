@@ -43,7 +43,7 @@ vis.gam(terrmod,plot.type="contour")
 points(x.council,y.council,col=area_cod,pch=20,cex=1.6)
 
 
-#analyse Weather area data -----------------------------------------------------
+#analyse Weather area council data -----------------------------------------------------
 with(db_chamois1,tapply(tsummer2.mean, list(area_cod), unique))
 
 #$`1`
@@ -117,4 +117,27 @@ varImpPlot(RandomNDVI_femaleMEAN)
 
 # NDVI Summer2, summer1, may1new, may2, MEAN 185 and MEAN 137 are the most important effects
 
-  
+#explore year effect
+boxplot(weight~year, main = "Weight")
+tapply(weight,list(year),mean)
+#2005     2006     2007     2008     2009     2010     2011     2012 
+#15.46646 15.40549 15.30142 15.95851 16.06113 15.27224 15.98993 15.67872
+
+boxplot(horn~year,, main = "Horn")
+tapply(horn,list(year),mean)
+#2005     2006     2007     2008     2009     2010     2011     2012 
+#142.3703 142.1738 145.4103 144.4403 140.2986 138.1275 139.7987 144.8367
+
+#2009 max average weight but 2007 max average horn ???
+
+# explore spatial effect
+
+with(db,tapply(weight,list(area_cod,year),mean))
+
+
+boxplot(weight~area_cod)
+boxplot(horn~area_cod)
+boxplot(horn~council_cod)
+#Model open area , elevation
+OE<-gam(horn~s(Perc.area.aperta,bs="cs")+s(q_media,bs="cs"))
+vis.gam(OE,theta=45,phi=50,zlab="horn")
