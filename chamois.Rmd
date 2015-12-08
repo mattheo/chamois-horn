@@ -1,13 +1,97 @@
 ---
 title: "Chamois"
-author: "Franz Johann, LiangWen, Matthias Theobald"
-date: "2. Dezember 2015"
+author: "Franz Johann, Liangwen He, Matthias Theobald"
+date: "18. Dezember 2015"
 output: html_document
 ---
 
-```{r, echo=FALSE}
+# About the data
+We have received a dataset of 2679 observations from hunted Chamois in the Eastern Italian Alps in the region of Alto Adige (South Tirol). The shot animals are yearlings culled during the hunting season of their second year. The hunting season is from September to December. The data measured from each individual is 
+- horn length,
+- weight, and
+- sex.
+
+Also included in the dataset is the council where the animal was shot, which in turn belongs to one of five administrative areas. Furthermore, there are environmental data, aggregated at the level of either council or area.
+
+## Description of Environmental Data
+
+
+## Struggling with Data
+
+The first dataset we received only included partial weather data. First, we wanted to know about the weather conditions of the winter during the pregnancy of the mother (first winter) but we only had data about the weather of the winter the yearling experienced (second winter).
+Second, there was no weather data about the autumn the yearling experienced.
+Third, while exploring the data, we found several inconsistencies in the weather data.
+
+Because of that, we asked for a larger dataset including the weather data of the first winter during pregnancy and also asked for clarification on the issues with the weather station. We received a second dataset where the requested information was provided, but 1100 obsverations of shot animals were removed, so only 1560 were available. The researchers responsible for the data argued that probably the removed data was not reliable. Our argument though is that each and every observation is useful and should be included in the model.
+We therefore set out to work on merging the two datasets and filling the holes in the old dataset with meaningful weather data from the second dataset.
+
+```{r loading data, echo=FALSE, include=FALSE}
+# load libraries
 library(mgcv)
+
+# helper function: inverse of intersect
+outersect <- function(x, y) {
+    sort(c(setdiff(x, y),
+        setdiff(y, x)))
+}
+
+# read data
+db_chamois1 <- read.csv("chamois1.csv", sep=";")
+db_chamois2 <- read.csv("chamois2.csv", sep=";")
+
+#rename columns so merging can work its magic
+db_chamois1$Snow_cover_winter2 <- db_chamois1$Snow_cover_winter
+db_chamois1$snow_winter2 <- db_chamois1$snow_winter
+db_chamois1$twinter.max2 <- db_chamois1$twinter.max
+db_chamois1$twinter.mean2 <- db_chamois1$twinter.mean
+db_chamois1$twinter.min2 <- db_chamois1$twinter.min
+
+# delete the old cloumns
+db_chamois1$Snow_cover_winter <- NULL
+db_chamois1$snow_winter <- NULL
+db_chamois1$twinter.max <- NULL
+db_chamois1$twinter.mean <- NULL
+db_chamois1$twinter.min <- NULL
+
+# delete columns excel has added
+db_chamois2$X <- NULL
+db_chamois2$X.1 <- NULL
+db_chamois2$X.2 <- NULL
+
+# merge the databases
+db_merge <- merge(db_chamois1, db_chamois2, all.x=T)
+
+# delete all unnecessary columns
+drops <- c(
+    "exc.date2", # excel numeric date
+    "Julia.date", # year + Julian day
+    "date", # year # Julian day + random number
+    "x", # coordniates + small random step for spatial autocorrelation
+    "y", # same
+    "x2", # same
+    "y2", # same
+    "y_r", #same
+    "x_r", #same
+    "NS", # North-south facing component of aspect
+    "EO", # East-West facing component of aspect
+    "Nweight", # normalized weight
+    "Nhorn", # normalized horn length
+    "h_w", # ratio hor length to weight
+    "index" # Indice of above ratio
+)
+db_merge <- db_merge[, !names(db_merge) %in% drops]
+
 ```
+
+## About the second Dataset
+
+Describing the new variables
+```{r new columns, echo=FALSE}
+# what columns are new in the new data set?
+outersect(colnames(db_chamois1), colnames(db_chamois2))
+```
+
+
 
 data exploration and visualisation
 
