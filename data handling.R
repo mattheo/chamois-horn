@@ -55,7 +55,74 @@ drops <- c(
 db <- db[, !names(db) %in% drops]
 head(db)
 
+# consistency of kills in councils
+with(db, tapply(horn, list(council_cod, year), length))
 
+
+# make weather data consistent
+# we use the weather station in council 27 for the whole area
+weather_data <- c(
+    "snow_winter1",
+    "Snow_cover_winter1",
+    "r_apr_mag_1",
+    "r_giu_lug_1",
+    "r_ago_set_1",
+    "r_spring1",
+    "r_newsummer1",
+    "r_autumn",
+    "snow_winter2",
+    "Snow_cover_winter2",
+    "r_apr_mag_2",
+    "r_giu_lug_2",
+    "r_ago_set_2",
+    "r_spring2",
+    "r_newsummer2",
+    "twinter.min1",
+    "twinter.max1",
+    "twinter.mean1",
+    "tspring1.min",
+    "tspring1.max",
+    "tspring1.mean",
+    "tsummer1.min",
+    "tsummer1.max",
+    "tsummer1.mean",
+    "tautumn.min",
+    "tautumn.max",
+    "tautumn.mean",
+    "twinter.min2",
+    "twinter.max2",
+    "twinter.mean2",
+    "tspring2.min",
+    "tspring2.max",
+    "tspring2.mean",
+    "tsummer2.min",
+    "tsummer2.max",
+    "tsummer2.mean"
+)
+
+# weather data from council 27 for each year
+station27 <- unique(db[db$council_cod==27, c("year", weather_data)]) # not okay: year2007
+station10 <- unique(db[db$council_cod==10, c("year", weather_data)])
+station8 <- unique(db[db$council_cod==8, c("year", weather_data)])
+
+
+station39 <- unique(db[db$council_cod==39, c("year", weather_data)]) # ok, snow, T, and Prec are from the higher stations both
+station49 <- unique(db[db$council_cod==49, c("year", weather_data)]) # same as 39
+
+
+plot(station49$r_autumn, station39$r_autumn)
+
+#
+
+
+# for the weather data in autumn, council27 has 2 values for the year 2007
+
+
+
+# merge the new dataset into te old one <- left merge
+db2 <- merge(db[, !names(db) %in% weather_data], station27, by="year", all=F)
+
+with(db, tapply(council_cod, year, length))
 
 # collinearity in elevation data
 cor(db[c("q_media", "q_min", "q_max")])
@@ -76,9 +143,6 @@ cor.test(db$nao_d, db$snow_winter2)
 
 # what columns are new in the new data set?
 outersect(colnames(db_chamois1), colnames(db_chamois2))
-
-
-
 
 
 
