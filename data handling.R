@@ -27,10 +27,6 @@ db_chamois2$X <- NULL
 db_chamois2$X.1 <- NULL
 db_chamois2$X.2 <- NULL
 
-# delete columns in second dataset: coordinates
-db_chamois2$x_r <- NULL
-db_chamois2$y_r <- NULL
-
 # create new Database
 db <- merge(db_chamois1, db_chamois2, all.x=T)
 
@@ -44,23 +40,29 @@ drops <- c(
     "y", # same
     "x2", # same
     "y2", # same
+    "y_r", #same
+    "x_r", #same
     "NS", # North-south facing component of aspect
     "EO", # East-West facing component of aspect
-    "NWeight", # normalized weight
+    "Nweight", # normalized weight
     "Nhorn", # normalized horn length
     "h_w", # ratio hor length to weight
     "index" # Indice of above ratio
 )
 
 db <- db[, !names(db) %in% drops]
+names(db)
 head(db)
 
-# consistency of kills in councils
+
+
+# consistency of kills in councils: not every year a chamois was shot in every council
 with(db, tapply(horn, list(council_cod, year), length))
+#
 
 
 # make weather data consistent
-# we use the weather station in council 27 for the whole area
+# select all weather data
 weather_data <- c(
     "snow_winter1",
     "Snow_cover_winter1",
@@ -102,27 +104,25 @@ weather_data <- c(
 
 # weather data from council 27 for each year
 station27 <- unique(db[db$council_cod==27, c("year", weather_data)]) # not okay: year2007
+# for the weather data in autumn, council27 has 2 values for the year 2007
 station10 <- unique(db[db$council_cod==10, c("year", weather_data)])
 station8 <- unique(db[db$council_cod==8, c("year", weather_data)])
-
+# the weather stations used in council 8 and 10 are not representative for the whole area
 
 station39 <- unique(db[db$council_cod==39, c("year", weather_data)]) # ok, snow, T, and Prec are from the higher stations both
 station49 <- unique(db[db$council_cod==49, c("year", weather_data)]) # same as 39
-
-
-plot(station49$r_autumn, station39$r_autumn)
-
-#
-
-
-# for the weather data in autumn, council27 has 2 values for the year 2007
+# representative!
 
 
 
 # merge the new dataset into te old one <- left merge
-db2 <- merge(db[, !names(db) %in% weather_data], station27, by="year", all=F)
+db2 <- merge(db[, !names(db) %in% weather_data], station39, by="year", all=F)
 
-with(db, tapply(council_cod, year, length))
+# check for NA
+with(db2, tapply(snow_winter1, area_cod, mean))
+with(db2, tapply(r_autumn, list(council_cod, year), unique))
+
+
 
 # collinearity in elevation data
 cor(db[c("q_media", "q_min", "q_max")])
