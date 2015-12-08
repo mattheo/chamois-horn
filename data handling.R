@@ -27,8 +27,8 @@ db_chamois2$X <- NULL
 db_chamois2$X.1 <- NULL
 db_chamois2$X.2 <- NULL
 
-# create new Database
-db <- merge(db_chamois1, db_chamois2, all.x=T)
+# merge the databases
+db_merge <- merge(db_chamois1, db_chamois2, all.x=T)
 
 
 # delete all unnecessary columns
@@ -49,16 +49,13 @@ drops <- c(
     "h_w", # ratio hor length to weight
     "index" # Indice of above ratio
 )
-
-db <- db[, !names(db) %in% drops]
-names(db)
-head(db)
-
+db_merge <- db_merge[, !names(db_merge) %in% drops]
+names(db_merge)
 
 
 # consistency of kills in councils: not every year a chamois was shot in every council
-with(db, tapply(horn, list(council_cod, year), length))
-#
+with(db_merge, tapply(horn, list(council_cod, year), length))
+# we need the consistent council to select which weather data to use
 
 
 # make weather data consistent
@@ -103,24 +100,30 @@ weather_data <- c(
 )
 
 # weather data from council 27 for each year
-station27 <- unique(db[db$council_cod==27, c("year", weather_data)]) # not okay: year2007
+station27 <- unique(db_merge[db_merge$council_cod==27, c("year", weather_data)]) # not okay: year2007
 # for the weather data in autumn, council27 has 2 values for the year 2007
-station10 <- unique(db[db$council_cod==10, c("year", weather_data)])
-station8 <- unique(db[db$council_cod==8, c("year", weather_data)])
+station10 <- unique(db_merge[db_merge$council_cod==10, c("year", weather_data)])
+station8 <- unique(db_merge[db_merge$council_cod==8, c("year", weather_data)])
 # the weather stations used in council 8 and 10 are not representative for the whole area
 
-station39 <- unique(db[db$council_cod==39, c("year", weather_data)]) # ok, snow, T, and Prec are from the higher stations both
-station49 <- unique(db[db$council_cod==49, c("year", weather_data)]) # same as 39
+station39 <- unique(db_merge[db_merge$council_cod==39, c("year", weather_data)]) # ok, snow, T, and Prec are from the higher stations both
+station49 <- unique(db_merge[db_merge$council_cod==49, c("year", weather_data)]) # same as 39
 # representative!
 
 
 
-# merge the new dataset into te old one <- left merge
-db2 <- merge(db[, !names(db) %in% weather_data], station39, by="year", all=F)
+# merge the new weather data set into the old one
+# removing the old weather columns first
+db <- merge(db_merge[, !names(db_merge) %in% weather_data], station39, by="year", all=F)
 
 # check for NA
-with(db2, tapply(snow_winter1, area_cod, mean))
-with(db2, tapply(r_autumn, list(council_cod, year), unique))
+with(db, tapply(snow_winter1, area_cod, mean))
+with(db, tapply(r_autumn, list(council_cod, year), unique))
+# ok
+
+
+
+
 
 
 
