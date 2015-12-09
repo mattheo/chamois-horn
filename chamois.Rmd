@@ -11,11 +11,13 @@ We have received a dataset of 2679 observations from hunted Chamois in the Easte
 - weight, and
 - sex.
 
+?density ?Jday
+
 Also included in the dataset is the council where the animal was shot, which in turn belongs to one of five administrative areas. Furthermore, there are environmental data, aggregated at the level of either council or area.
 
 ## Description of Environmental Data
 
-
+We have the geographic coordinate, elevation and aspect for each council. In the area level the substrate is seperated to two categories: siliceous and calcareous. As for weather data we have in the global climate scale North Atlantic Oscillation(nao) index, in the local scale there are particular temperature and precipitation for each season covered by the life history of killed chamois. The Normalized Difference Vegetation Index(NDVI) was used to reflect the food supply for chamois.
 ## Struggling with Data
 
 The first dataset we received only included partial weather data. First, we wanted to know about the weather conditions of the winter during the pregnancy of the mother (first winter) but we only had data about the weather of the winter the yearling experienced (second winter).
