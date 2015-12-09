@@ -129,4 +129,4 @@ summary(db$r_autumn)
 summary(db$tautumn.min)
 # No NAs!
 
-
+save(db, file="db.RData")
