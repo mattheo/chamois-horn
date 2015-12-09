@@ -30,6 +30,8 @@ db_chamois2$X.2 <- NULL
 # merge the databases
 db_merge <- merge(db_chamois1, db_chamois2, all.x=T)
 
+# what columns are new in the new data set?
+outersect(colnames(db_chamois1), colnames(db_chamois2))
 
 # delete all unnecessary columns
 drops <- c(
@@ -116,10 +118,17 @@ station49 <- unique(db_merge[db_merge$council_cod==49, c("year", weather_data)])
 # removing the old weather columns first
 db <- merge(db_merge[, !names(db_merge) %in% weather_data], station39, by="year", all=F)
 
+# remove the old summer precipitation data
+db$r_summer_1 <- NULL
+db$r_summer_2 <- NULL
+
 # check for NA
-with(db, tapply(snow_winter1, area_cod, mean))
-with(db, tapply(r_autumn, list(council_cod, year), unique))
-# ok
+with(db, tapply(snow_winter1, year, function(y) sum(is.na(y))))
+summary(db$snow_winter1)
+summary(db$r_autumn)
+summary(db$tautumn.min)
+# No NAs!
+
 
 
 
