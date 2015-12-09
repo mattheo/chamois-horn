@@ -145,24 +145,42 @@ abline(h=140,col="darkgreen",lty=2,lwd=2)
 abline(h=160,col="darkgreen",lty=2,lwd=2)
 legend("topright",lwd=c(2,2,2),lty=c(1,1,2),col=c("blue","red","darkgreen"),legend=c("male","female", "fix value 140 mm & 160 mm"),cex=0.8)
 
-#----Loess Weight male------------------------------------
+#----Loess Weight elevation male------------------------------------
 
-fmLoess_WE_m <- loess(male$weight~male$q_media,family="gaussian",span=0.8)
+fmLoess_WE_m <- loess(male$weight~male$q_media,family="gaussian",span=0.75)
 newEle_m <- seq(from=min(male$q_media), to=max(male$q_media),by=1)
 pred_W_m <- predict(fmLoess_WE_m, newEle_m, se=TRUE)
 plot(weight~q_media, main ="Loess Regression: Weight~Elevation",ylab="Weight [kg]",xlab="Elevation [m a.s.l.]",pch=1)
 lines(pred_W_m$fit~newEle_m,col="blue", lwd=2)
 
 
-#Loess Weight Female -------------------------------------------------------
+#Loess Weight elevationFemale -------------------------------------------------------
+attach(db)
 
-fmLoess_WE_f <- loess(female$weight~female$q_media,family="gaussian",span=0.8)
+fmLoess_WE_f <- loess(female$weight~female$q_media,family="gaussian",span=0.75)
 newEle_f <- seq(from=min(female$q_media), to=max(female$q_media),by=1)
 pred_W_f <- predict(fmLoess_WE_f, newEle_f, se=TRUE)
 
 lines(pred_W_f$fit~newEle_f,col="red", lwd=2, lty =2)
 abline(h=15,lty=3,col="darkgreen",lwd=2)
 legend("topright",lwd=c(2,2,2),lty=c(1,2,3),col=c("blue","red","darkgreen"),legend=c("male","female", "fix value 15 kg"),cex=0.8)
+
+# LOESS Horn Ele Male-----------------------------------
+
+fmLoess_HE_m <- loess(male$horn~male$q_media,family="gaussian",span=0.75)
+newEle_m <- seq(from=min(male$q_media), to=max(male$q_media),by=1)
+pred_H_m <- predict(fmLoess_HE_m, newEle_m, se=TRUE)
+plot(horn~q_media, main ="Loess Regression: Horn~Elevation",ylab="horn [mm]",xlab="Elevation [m a.s.l.]",pch=1)
+lines(pred_H_m$fit~newEle_m,col="blue", lwd=2)
+#Loess Horn Female---------------------------------
+
+fmLoess_HE_f <- loess(female$horn~female$q_media,family="gaussian",span=0.75)
+newEle_f <- seq(from=min(female$q_media), to=max(female$q_media),by=1)
+pred_H_f <- predict(fmLoess_HE_f, newEle_f, se=TRUE)
+
+lines(pred_H_f$fit~newEle_f,col="red", lwd=2,lty =2)
+legend("topright",lwd=c(2,2),lty=c(1,2),col=c("blue","red"),legend=c("male","female"))
+
 #############################################################################################
 
 #simple models---

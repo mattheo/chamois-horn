@@ -1,0 +1,59 @@
+---
+title: "Chamois Horn Size in Eastern Italian Alps"
+author: "Franz Johann, Liangwen He, Matthias Theobald"
+date: "10. Dezember 2015"
+output: ioslides_presentation
+---
+
+
+## Research Question
+
+How are male and female chamois reacting differently on environmental conditions regarding their investment in horn growth?
+
+
+<img src="imgs/chamois1.jpg" width="600">
+
+## Data Exploration: Hornlength
+
+<img src="imgs/Hist_horn.jpeg" width="800">
+                                                
+                                                
+                                                
+## Data Exploration Hornlength: Outlayers?
+<img src="imgs/Boxplot_hornlength.jpeg" width="800">
+                                               
+## Data Exploration: Weight                                                
+<img src="imgs/Hist_weight.jpeg" width="800">
+                                                
+## Data Exploration: Hornlength ~ Weight                                                
+<img src="imgs/gam_weight+sex.jpeg" width="800">
+                                                
+
+                                              
+## Data Exploration: Weight ~ Day of the Hunting Season
+<img src="imgs/Gam_Weight+Jday.jpeg" width="800">                                               
+                                                
+## Data Exploration: Horn ~ Day of the Hunting Season I
+<img src="imgs/Loess _Horn_Jday_mf.jpeg" width="800">  
+                                                
+## Data Exploration: Horn ~ Day of the Hunting Season II
+<img src="imgs/Gam1_horn_weight_Jday.jpeg" width="800"> 
+
+## Data Exploration: Horn ~ Day of the Hunting Season III
+
+<img src="imgs/Gam_interaction_horn_weight_Jday.jpeg" width="800">
+
+## Data Exploration: Elevation
+mean hornlength at lowest "area": 158.0 mm
+
+mean hornlength at higest "area"" : 137.3 mm
+<img src="imgs/Hist_elevation.jpeg" width="600">
+## Data Exploration: Weight ~ Elevation
+
+<img src="imgs/Loess_Weight_Ele.jpeg" width="800">                                            
+## Data Exploration: Horn~ Elevation
+
+<img src="imgs/Loess_Horn_Ele.jpeg" width="800">                                               
+                                                
+## Thank You
+<img src="imgs/chamois2.jpg" width="800">

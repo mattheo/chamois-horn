@@ -45,16 +45,19 @@ mean hornlength at higest "area"" : 137.3 mm
 <img src="imgs/Hist_elevation.jpeg" width="600", style="display: block;
                                                 margin-left: auto;
                                                 margin-right: auto">
+                                                
+## Data Exploration: Horn~ Elevation
+
+<img src="imgs/Loess_Horn_Ele.jpeg" width="800", style="display: block;
+                                                margin-left: auto;
+                                                margin-right: auto">                                                
+                                                
 ## Data Exploration: Weight ~ Elevation
 
 <img src="imgs/Loess_Weight_Ele.jpeg" width="800", style="display: block;
                                                 margin-left: auto;
                                                 margin-right: auto">
-
-mean hornlength at higest "area"" : 137.3 mm
-<img src="imgs/Hist_elevation.jpeg" width="600", style="display: block;
-                                                margin-left: auto;
-                                                margin-right: auto">                                                
+                                              
 ## Data Exploration: Weight ~ Day of the Hunting Season
 <img src="imgs/Gam_Weight+Jday.jpeg" width="800", style="display: block;
                                                 margin-left: auto;
