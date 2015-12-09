@@ -27,6 +27,10 @@ Third, while exploring the data, we found several inconsistencies in the weather
 Because of that, we asked for a larger dataset including the weather data of the first winter during pregnancy and also asked for clarification on the issues with the weather station. We received a second dataset where the requested information was provided, but 1100 obsverations of shot animals were removed, so only 1560 were available. The researchers responsible for the data argued that probably the removed data was not reliable. Our argument though is that each and every observation is useful and should be included in the model.
 We therefore set out to work on merging the two datasets and filling the holes in the old dataset with meaningful weather data from the second dataset.
 
+## More Problem with Data
+When we are trying to bring the two dataset together, we found that the relationships between the weather data of different areas are unsteady, which actually should have some equality because of the sharing of same weather stations. The result turn out to be that since not all the stations are at work in the same time, some councils have to even borrow weather data from other area, when the own weather station next to it is closed. This is a serious problem, we can now no more maitain that the weather data for each council is true.
+To deal with this problem, we try to find out one council sample, which on one side has insisted with the weather data from one station continuously from 2005 to 2012, and on the other side can be representative of the whole research area considering its elevation(finally council 39). Then we generalizing its weather data to the whole reasearch area for each year. At last we would introduce an interaction between elevation and aspect, which should reflect the ture variance of weather in different councils.
+
 ```{r loading data, echo=FALSE, include=FALSE}
 # load libraries
 library(mgcv)
