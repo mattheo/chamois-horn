@@ -20,6 +20,7 @@ diff(apply(horn_sexyear, 2, range))
 
 # graphical
 boxplot(horn~f.sex, data = db, main= "Hornlength ",ylab= "length [mm]", xlab= "sex")
+
 hist(horn[sex==1],breaks=40,freq=FALSE,col=rgb(1,0,0,0.1), main="Hornlength", xlab= "Length [mm]")
 hist(horn[sex==2],breaks=40,freq=FALSE,add=TRUE,col=rgb(0,0,1,0.1))
 lines(density(horn[sex==1]), col="red", lwd=2)
@@ -89,8 +90,8 @@ plot(fgam1)
 
 ## Julian day ####################
 
-range (Jday)#[1] 247 364
-max(Jday)-min(Jday)#timespan 117 days
+range(Jday)#[1] 247 364
+max(Jday) - min(Jday)#timespan 117 days
 
 # The range of Julianday spans over a period of 117 days from day 247 to day 364
 
@@ -104,7 +105,7 @@ fgam5 <- gam(weight ~ s(Jday, bs="cs"), data=db)
 summary(fgam5)
 plot(fgam5)
 # apparantly the weight increases over the hunting period until ~ day 300 when it rapidly drops. This could  be explained that before October the animals find enough grass for feeding and grwoing, while later the winter has set on and they start to burn their body fat reserves.
-# This on the other hand leads to the conclusion, that there is an interaction between weight an Jday
+# This on the other hand leads to the conclusion, that there is an interaction between weight and Jday
 
 
 ## effect of Julian day on horn length #########################
@@ -118,8 +119,10 @@ plot(fgam6)
 # the effect seems to be minimal, also less than 1% deviance explained
 # horns grow consistently over the season
 # yet the random forest found Jday as second most important predictor on horn size. Whats going on?
+flm1 <- lm(horn ~ Jday)
+summary(flm1)
 117*0.04 # over the hunting period, the horn is growing roughly about 5 mm
-# that's less than 5%, but still somethin
+# that's less than 5%, but still something
 
 # loess smoothing model
 fmLoess_Jday <- loess(horn~Jday,family="gaussian",span=0.8)
