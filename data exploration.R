@@ -63,6 +63,22 @@ legend("topright",lwd=c(2,2),col=c("red","blue"),legend=c("female", "male"))
 plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]")
 
 
+# Problems with integers and floats in weight data
+# selecting all weight data which are whole numbers
+tol <- 1e-12
+db$int_weight <- 0
+
+db$int_weight[sapply(db$weight, function(y) min(abs(c(y%%1, y%%1-1))) < tol)] <- 1
+
+sum(db$int_weight) # whole numbers in weight
+length(db$int_weight) - sum(db$int_weight) # floating point numbers
+
+# are the integers and floating point weigths evenly distributed over the councils?
+plot(with(db, tapply(int_weight, council_cod, function(y) sum(y)/length(y))), type="h", cex=1.4, main="weight: percentage whole numbers", xlab="council", ylab="")
+
+plot(with(db, tapply(int_weight, area_cod, function(y) sum(y)/length(y))), type="h", cex=1.4, main="weight: percentage whole numbers", xlab="area", ylab="")
+
+
 ## effect of weight on horn length ####################
 
 fgam1<-gam(horn~s(weight, bs="cs"),data=db)
@@ -182,8 +198,13 @@ plot(fgam4)
 
 
 
+## animal density###########################
+
+with(db, tapply(density, list(year, area_cod), unique))
+# we have an animal density per administrative area per year  which is then either confirmed in the next year or changed.
 
 
+## Collinearity in predictors ##########################
 
 # collinearity in elevation data
 cor(db[c("q_media", "q_min", "q_max")])
@@ -204,7 +225,6 @@ cor.test(db$nao_d, db$snow_winter2)
 # and also with snow depth
 
 # NAO is not a useful predictor since we have higher resolution on the highly correlated weather data
-
 
 
 
