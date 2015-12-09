@@ -16,7 +16,7 @@ mean (horn[sex==2])-mean (horn[sex==1]) #22.40985
 
 
 
-boxplot(horn~sex, data = db, main= "Hornlength ",ylab= "lengt [mm]", xlab= "female                                                                   male")
+boxplot(horn~sex, data = db, main= "Distribution of Hornlength ",ylab= "lengt [mm]", xlab= "female                                                                   male")
 hist(horn[sex==1],breaks=40,freq=FALSE,col=rgb(1,0,0,0.1), main="Hornlength", xlab= "Length [mm]")
 hist(horn[sex==2],breaks=40,freq=FALSE,add=TRUE,col=rgb(0,0,1,0.1))
 ?hist
@@ -147,8 +147,8 @@ legend("topright",lwd=c(2,2,2),lty=c(1,1,2),col=c("blue","red","darkgreen"),lege
 
 #############################################################################################
 
-#simple models-----------------
-
+#simple models---
+library(mgcv)
 Julgam1<-gam(horn~s(Jday)+s(weight), data=db)
 vis.gam(Julgam1,plot.type="persp",theta=45, main="horn~Jday + weight",zlab="horn")
 summary(Julgam1)
@@ -157,8 +157,8 @@ summary(Julgam1)
 Julgam2<-gam(horn~s(Jday, bs="cs")+s(weight,bs="cs"), data=db_chamois1)
 vis.gam(Julgam2,plot.type="persp",theta=45)
 
-Julgam3<-gam(weight~s(Jday)+f.sex, data=db_chamois1)
-vis.gam(Julgam3,plot.type="persp",theta=45, main="weight~Jday + sex",zlab="weight")
+Julgam3<-gam(weight~s(Jday)+f.sex, data=db)
+vis.gam(Julgam3,plot.type="persp",theta=45, main="Weight ~ Julianday + Sex",zlab="weight", xlab="female       male",ylab="Day of Hunting Season")
 summary(Julgam3)
 par(mfrow=c(1,1))
 plot(Julgam3)
@@ -170,6 +170,8 @@ db$data<-NULL#delete couumn containing data formate
 male_db<-subset(db,sex = 2)
 female_db<-subset(db,sex = 1)
 #scaled subsets---------------------------------------------------------------
+
+
 sc_male<-as.data.frame(scale(male_db))
 sc_female<-as.data.frame(scale(female_db))
 
@@ -179,18 +181,14 @@ list(names(sc_female))
 #Randomforest NDVI
 library(randomForest)
 ?randomForest
-#watch computing time n= 2000 
-RandomNDVI_male<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (MEAN_201) + (MEAN_217) + (MEAN_233) + (MEAN_249) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.summer1) + (ndvi.may1) + (ndvi.slop2) + (ndvi.maxincr2 ) + (ndvi.summer2) + (ndvi.may2) + (ndvi.may1.new) + (ndvi.may2.new), ntree=2000, data = sc_male)
+#watch computing time n= 1000 
+RandomNDVI_male<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (ndvi.maxincr1) + (ndvi.summer1) + (ndvi.slop2) + (ndvi.maxincr2) + (ndvi.summer2) + (ndvi.may1.new) + (ndvi.may2), ntree=1000, data = sc_male)
 varImpPlot(RandomNDVI_male)
 
-RandomNDVI_female<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (MEAN_201) + (MEAN_217) + (MEAN_233) + (MEAN_249) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.summer1) + (ndvi.may1) + (ndvi.slop2) + (ndvi.maxincr2 ) + (ndvi.summer2) + (ndvi.may2) + (ndvi.may1.new) + (ndvi.may2.new), ntree=2000, data = sc_female)
-varImpPlot
+RandomNDVI_female<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (ndvi.maxincr1) + (ndvi.summer1) + (ndvi.slop2) + (ndvi.maxincr2) + (ndvi.summer2) + (ndvi.may1.new) + (ndvi.may2), ntree=1000, data = sc_female)
+varImpPlot(RandomNDVI_female)
 
-RandomNDVI_maleMEAN<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (MEAN_201) + (MEAN_217) + (MEAN_233) + (MEAN_249), ntree=2000, data = sc_male)
-varImpPlot(RandomNDVI_maleMEAN)
 
-RandomNDVI_femaleMEAN<-randomForest(horn~ (MEAN_105) + (MEAN_121) + (MEAN_137) + (MEAN_153) + (MEAN_169) + (MEAN_185) + (MEAN_201) + (MEAN_217) + (MEAN_233) + (MEAN_249), ntree=2000, data = sc_female)
-varImpPlot(RandomNDVI_femaleMEAN)
 
 # NDVI Summer2, summer1, may1new, may2, MEAN 185 and MEAN 137 are the most important effects
 
@@ -218,3 +216,53 @@ boxplot(horn~council_cod)
 #Model open area , elevation
 OE<-gam(horn~s(Perc.area.aperta,bs="cs")+s(q_media,bs="cs"))
 vis.gam(OE,theta=45,phi=50,zlab="horn")
+
+attach(db)
+
+boxplot(log(horn)~sex)
+
+#-gam-----------------------------------------------------------------------
+library(mgcv)
+
+m1<-gam(horn~s(weight)+s(Jday),data=db)
+#vis.gam(m1)
+vis.gam(m1,se=1)
+#vis.gam(m1,se=1,theta=45)
+#vis.gam(m1,se=1,theta=60)
+vis.gam(m1,theta=60,main="Hornlength ~ weight+Jday",zlab="Hornlength")
+
+m2<-gam(horn~s(weight,Jday),data=db)
+vis.gam(m2,theta=60,main="Hornlength ~ (weight, Jday)",zlab="Hornlength")
+
+
+####to be cleaned############################################
+
+#vis.gam(m2,theta=60, se=1)
+#?vis.gam
+# vis.gam(m1,theta=60, se=1, n.grid=50)
+# vis.gam(m1,theta=60, se=1, n.grid=80)
+#vis.gam(m1,theta=60, se=1, n.grid=100)
+#vis.gam(m1,theta=60, se=1, n.grid=100, phi=25)
+# plot(m1)
+#vis.gam(m1,theta=50, se=1, n.grid=80, phi=25)
+# vis.gam(m1,theta=25, se=1, n.grid=80, phi=25)
+#vis.gam(m1,theta=25, se=1, n.grid=120, phi=25)
+#vis.gam(m1,theta=125, se=1, n.grid=50, phi=25)
+# vis.gam(m1,theta=125, n.grid=50, phi=25)
+#vis.gam(m1,theta=90, n.grid=50, phi=25)
+# vis.gam(m1,theta=-90, n.grid=50, phi=25)
+# vis.gam(m1,theta=60, se=1, n.grid=100, phi=25, gamma=1.5)
+
+# vis.gam(m1,theta=60, se=1, n.grid=100, phi=25)
+#vis.gam(m1,theta=60,n.grid=100, phi=25)
+# m1<-gam(horn~s(weight, Jday),data=db, gamma=1.1)
+# m1<-gam(horn~s(weight, Jday),data=db)
+#boxplot(horn)
+#attach(db)
+#boxplot(horn~sex)
+#boxplot(log(horn)~sex,main="Distribution Hornlength",ylab="length [mm]")
+# m1<-gam(horn~s(weight, Jday),data=db, gamma=1.1)
+###########################################################################################
+#analysis of weight values scale
+tapply(weight, council_cod, unique)
+
