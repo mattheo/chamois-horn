@@ -86,13 +86,6 @@ summary(fgam1) # 11% of deviance explained; quite a lot for one predictor
 plot(horn~weight, data=db)
 plot(fgam1)
 
-## effect of Julian day on weight ##################
-
-fgam5 <- gam(weight ~ s(Jday, bs="cs"), data=db)
-summary(fgam5)
-plot(fgam5)
-# apparantly the weight increases over the hunting period until ~ day 300 when it rapidly drops. This could  be explained that before October the animals find enough grass for feeding and grwoing, while later the winter has set on and they start to burn their body fat reserves.
-# This on the other hand leads to the conclusion, that there is an interaction between weight an Jday
 
 ## Julian day ####################
 
@@ -103,6 +96,15 @@ max(Jday)-min(Jday)#timespan 117 days
 
 hist(Jday, main= "Julianday",xlab="day of the year")
 #the data are well distributed
+
+
+## effect of Julian day on weight ##################
+
+fgam5 <- gam(weight ~ s(Jday, bs="cs"), data=db)
+summary(fgam5)
+plot(fgam5)
+# apparantly the weight increases over the hunting period until ~ day 300 when it rapidly drops. This could  be explained that before October the animals find enough grass for feeding and grwoing, while later the winter has set on and they start to burn their body fat reserves.
+# This on the other hand leads to the conclusion, that there is an interaction between weight an Jday
 
 
 ## effect of Julian day on horn length #########################
