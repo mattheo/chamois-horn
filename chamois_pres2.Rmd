@@ -1,0 +1,26 @@
+---
+title: "Chamois Horn size in Eastern Italian Alps"
+author: "Franz Johann, Liangwen He, Matthias Theobald"
+date: "10. Dezember 2015"
+output: ioslides_presentation
+---
+
+## No more struggle with data
+
+- Received missing weather data and plugged them into our old dataset
+- But data was inconsistent
+- ???
+
+
+- Decided to take data from two stations with 
+    - Continuous measurements
+    - Representative elevation
+- Now every council has the same weather data per year for the whole life cycle of the shot chamois
+
+
+- Now we have 2679 observations of 82 predictors
+
+## Data exploration
+
+- Continuing exploring the data
+- 
