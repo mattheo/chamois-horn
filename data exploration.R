@@ -1,4 +1,8 @@
-library(mgcv, plyr)
+library(mgcv)
+
+
+load("db.RData")
+attach(db)
 
 # Getting to know the data
 class(sex) # integer
@@ -67,12 +71,12 @@ plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]
 # Problems with integers and floats in weight data
 # selecting all weight data which are whole numbers
 tol <- 1e-12
-db$int_weight <- 0
+int_weight <- rep(0, nrow(db))
 
-db$int_weight[sapply(db$weight, function(y) min(abs(c(y%%1, y%%1-1))) < tol)] <- 1
+int_weight[sapply(db$weight, function(y) min(abs(c(y%%1, y%%1-1))) < tol)] <- 1
 
-sum(db$int_weight) # whole numbers in weight
-length(db$int_weight) - sum(db$int_weight) # floating point numbers
+sum(int_weight) # whole numbers in weight
+length(int_weight) - sum(int_weight) # floating point numbers
 
 # are the integers and floating point weigths evenly distributed over the councils?
 plot(with(db, tapply(int_weight, council_cod, function(y) sum(y)/length(y))), type="h", cex=1.4, main="weight: percentage whole numbers", xlab="council", ylab="")
@@ -110,9 +114,12 @@ plot(fgam5)
 
 ## effect of Julian day on horn length #########################
 
-fgam6 <- gam(horn ~ s(Jday, bs="tp"), data=db)
-summary(fgam6)
-plot(fgam6)
+fgam6 <- gamm(horn ~ s(Jday, bs="re") + s(Jday, weight, bs="re") + s(weight, bs="re") + f.sex, random=list(council_cod=~1, year=~1), data=db)
+summary(fgam6$gam)
+plot(fgam6$gam, page=1)
+vis.gam(fgam6)
+summary(fgam6$lme)
+
 
 # less than 1 degree of freedom -> smoothing unnecessary -> line
 
@@ -140,7 +147,7 @@ legend("topright",lwd=c(2,2),lty=c(1,2),col=c("red","blue"),legend=c("loess regr
 
 # spatial distribution ###############
 
-plot(x.council,y.council,col=area_cod,pch=20,cex=1.6, main = "Spatial Distribution")
+plot(db$x.council, db$y.council, col=db$area_cod, pch=20, cex=1.6, main = "Spatial Distribution", xlab="", ylab="")
 legend("bottomright", legend=paste("Area", unique(db$area_cod)), col=unique(db$area_cod), pch=20)
 
 #The spatial distribution of the data suggests spatial autocorrelation.This fact should be adressed in a model
@@ -192,6 +199,7 @@ fgam3 <- gam(horn ~s(asp, bs="cp"), data=db)
 summary(fgam3)
 plot(fgam3)
 
+
 # problem: asp is not going from 0 to 360
 summary(db$asp)
 # but from 36 to 340 degrees
@@ -201,6 +209,12 @@ summary(fgam4)
 plot(fgam4)
 # but this explaines least deviance and is has a worse p-value
 
+# turn the aspect, so the gap is not a 0 <-> 360 °
+newasp <- db$asp + 180
+newasp[newasp > 360] <- newasp[newasp > 360] - 360
+summary(newasp)
+
+plot(gam(horn ~ s(newasp, bs="cc"), data=db))
 
 
 ## animal density###########################
@@ -213,7 +227,7 @@ with(db, tapply(density, list(year, area_cod), unique))
 
 # collinearity in elevation data
 cor(db[c("q_media", "q_min", "q_max")])
-db$q_range <- db$q_max - db$q_min
+q_range <- db$q_max - db$q_min
 with(db, cor(q_media, q_range))
 with(db, plot(q_media, q_range)) # not okay yet
 # we still have to decide what we want to use for the model
