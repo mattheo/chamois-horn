@@ -298,6 +298,14 @@ pairs(spring1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel 
 spring2 <- cbind(tspring2.max, tspring2.min, tspring2.mean, r_spring2, r_apr_mag_2, r_giu_lug_2, r_ago_set_2)
 pairs(spring2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring2")
 
+# first summer
+summer1 <- cbind(tsummer1.max, tsummer1.min, tsummer1.mean, r_newsummer1, r_apr_mag_1, r_giu_lug_1, r_ago_set_1)
+pairs(summer1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer1")
+
+# secound summer
+summer2 <- cbind(tsummer2.max, tsummer2.min, tsummer2.mean, r_newsummer2, r_apr_mag_2, r_giu_lug_2, r_ago_set_2)
+pairs(summer2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer2")
+
 # collnearity of NDVI
 
 
