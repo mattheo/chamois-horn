@@ -282,7 +282,7 @@ cor.test(db$nao_d, db$snow_winter2)
 # NAO is not a useful predictor since we have higher resolution on the highly correlated weather data
 
 # first winter
-source("collinearity check.R")
+library(psych)
 winter1 <- cbind(snow_winter1, Snow_cover_winter1, twinter.max1, twinter.mean1, twinter.min1)
 pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter1")
 
@@ -315,7 +315,7 @@ pairs(autumn, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel =
 ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
 ndvi2 <- cbind(ndvi.maxincr2, ndvi.may2.new, ndvi.slop2, ndvi.summer2)
 
-pairs(ndvi1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "NDVI1")
+pairs.panels(ndvi1, scale=T, main = "NDVI1", method = "spearman")
 # as expected, NDVI in may and summer are highly correlated. Pick One.
 # however, ndvi.slop is heavily skewed towards 0
 sum(ndvi.slop1 == 0) # only 1!
@@ -334,6 +334,6 @@ plot(gam(horn ~ s(log.ndvi.slop1, bs="cs"), data=db))
 
 #ndvi.slop is probably not a good predictor
 
-pairs(ndvi2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "NDVI2")
+pairs.panels(ndvi2, scale=T, main = "NDVI2", method = "spearman")
 # same for the second year
 
