@@ -308,6 +308,9 @@ summer2 <- cbind(tsummer2.max, tsummer2.min, tsummer2.mean, r_newsummer2, r_apr_
 pairs(summer2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer2")
 
 # collnearity of NDVI
-ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi)
+ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
+ndvi2 <- cbind(ndvi.maxincr2, ndvi.may2.new, ndvi.slop2, ndvi.summer2)
 
+pairs(ndvi1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "NDVI1")
 
+pairs(ndvi2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "NDVI2")
