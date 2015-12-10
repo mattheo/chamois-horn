@@ -9,6 +9,8 @@ class(sex) # integer
 f.sex<-as.factor(sex)# transformation of sex data to class factor
 levels(f.sex) <- c("female", "male") # relevel sex
 
+
+
 ## horn length ####################
 
 ## differences in mean horn length between sexes
@@ -21,7 +23,6 @@ apply(horn_sexyear, 2, summary)
 (apply(horn_sexyear, 2, sd))
 # males have less variance in mean horn length over the years
 boxplot(horn_sexyear, ylab="Hornlength [mm]", main="Mean Hornlength over years")
-
 
 
 # Variance of horn size in sexes
@@ -42,6 +43,7 @@ legend("topright",lwd=c(2,2),col=c("red","blue"),legend=c("female", "male"))
 # plots of horn lengths for each individual
 plot (horn[sex==2], main = "Hornlength male", ylab = "Length [mm]")
 plot (horn[sex==1],main = "Hornlength female", ylab = "Length [mm]")
+
 
 
 ## weight ###################
@@ -89,9 +91,15 @@ plot(with(db, tapply(int_weight, council_cod, function(y) sum(y)/length(y))), ty
 
 plot(with(db, tapply(int_weight, area_cod, function(y) sum(y)/length(y))), type="h", cex=1.4, main="weight: percentage whole numbers", xlab="area", ylab="")
 
+
+
 ## spatial distribution of weight ###################
 fm_spatial_weight <- gam(weight ~ s(x.council, y.council), data=db)
-vis.gam(fm_spatial_weight)
+vis.gam(fm_spatial_weight, plot.type="contour", main="Weight")
+# elevation, unweighted and interpolated!
+fm_spatial_ele <- gam(q_media~s(x.council, y.council), data=db)
+vis.gam(fm_spatial_ele, plot.type = "contour", main="Elevation", xlab="", ylab="")
+
 
 
 ## effect of weight on horn length ####################
@@ -100,6 +108,8 @@ fgam1<-gam(horn~s(weight, bs="cs"),data=db)
 summary(fgam1) # 11% of deviance explained; quite a lot for one predictor
 plot(horn~weight, data=db)
 plot(fgam1)
+
+
 
 ## councils #####################
 
@@ -111,6 +121,7 @@ with(db, tapply(horn, list(council_cod, year), length))
 # also consistently over the years, council 15 has the most kills
 
 
+
 ## Julian day ####################
 
 range(Jday)#[1] 247 364
@@ -120,6 +131,7 @@ max(Jday) - min(Jday)#timespan 117 days
 
 hist(Jday, main= "Julianday",xlab="day of the year")
 #the data are well distributed
+
 
 
 ## effect of Julian day on weight ##################
@@ -269,22 +281,7 @@ source("collinearity check.R")
 winter1 <- cbind(snow_winter1, Snow_cover_winter1, twinter.max1, twinter.mean1, twinter.min1)
 pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter1")
 
-# data transformation
-with(db_chamois1, tapply(snow_winter2, list(area_cod, year), mean)) # --> only 2 station, weather data in area1 are mixed
+# collinearity of NDVI
 
-with(db_chamois1, tapply(twinter.mean, list(area_cod, year), mean))
 
-with(db_chamois1, tapply(tspring1.mean, list(area_cod, year), mean)) # changed since 2009
-
-# inconsistent relationship between areas
-
-# how big is the variance between areas?
-with(db, tapply(twinter.min2, year, summary)) # second winter, minimum T
-with(db, tapply(twinter.max2, year, summary)) # second winter, max T
-
-# summary of first winter
-with(db, tapply(twinter.mean1, year, summary))
-
-# values of first winter per year and area
-with(db, tapply(twinter.mean1, list(area_cod, year), unique))
 
