@@ -307,6 +307,10 @@ pairs(summer1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel 
 summer2 <- cbind(tsummer2.max, tsummer2.min, tsummer2.mean, r_newsummer2, r_apr_mag_2, r_giu_lug_2, r_ago_set_2)
 pairs(summer2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer2")
 
+# autumn
+autumn <- cbind(tautumn.max, tautumn.min, tautumn.mean, r_autumn, r_apr_mag_1, r_giu_lug_1, r_ago_set_1)
+pairs(autumn, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Autumn")
+
 # collnearity of NDVI
 ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
 ndvi2 <- cbind(ndvi.maxincr2, ndvi.may2.new, ndvi.slop2, ndvi.summer2)
