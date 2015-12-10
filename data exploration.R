@@ -332,6 +332,7 @@ with(db, tapply(density, list(year, area_cod), unique))
 
 
 ## Collinearity in predictors ##########################
+library(psych)
 
 # collinearity in elevation data
 pairs.panels(db[c("q_media", "q_min", "q_max")])
@@ -353,37 +354,51 @@ cor.test(db$nao_d, db$snow_winter2)
 
 # NAO is not a useful predictor since we have higher resolution on the highly correlated weather data
 
+# precipitation data
+prec1 <- cbind(snow_winter1, r_apr_mag_1, r_giu_lug_1, r_ago_set_1, r_spring1, r_newsummer1, r_autumn)
+prec2 <- cbind(snow_winter2, r_apr_mag_2, r_giu_lug_2, r_ago_set_2, r_spring2, r_newsummer2)
+
+pairs.panels(prec1, scale=T, method="spearman", main="precipitation 1")
+pairs.panels(prec2, scale=T, method="spearman", main="precipitation 2")
 
 # first winter
-library(psych)
-winter1 <- cbind(snow_winter1, Snow_cover_winter1, twinter.max1, twinter.mean1, twinter.min1)
+winter1 <- cbind(snow_winter1, Snow_cover_winter1, twinter.min1, twinter.mean1, twinter.max1)
 pairs.panels(winter1, scale=T, main = "Winter1", method = "spearman")
-pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter1")
+# Snow_cover_winter1  --> out
 
-# secound winter  Snow_cover_winter2  --> out
-winter2 <- cbind(snow_winter2, Snow_cover_winter2, twinter.max2, twinter.mean2, twinter.min2)
-pairs(winter2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter2")
-
+# second winter
+winter2 <- cbind(snow_winter2, Snow_cover_winter2, twinter.min2, twinter.mean2, twinter.max2)
+pairs.panels(winter2, scale=T, main = "Winter2", method = "spearman")
+# Snow_cover_winter2  --> out
 
 # first spring
-spring1 <- cbind(tspring1.max, tspring1.min, tspring1.mean, r_spring1)
-pairs(spring1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring1")
+spring1 <- cbind(r_spring1, tspring1.min, tspring1.mean, tspring1.max)
+pairs.panels(spring1, scale=T, main = "Spring1", method = "spearman")
+# allright!
 
 # secound spring
-spring2 <- cbind(tspring2.max, tspring2.min, tspring2.mean, r_spring2)
-pairs(spring2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring2")
+spring2 <- cbind(r_spring2, tspring2.min, tspring2.mean, tspring2.max)
+pairs.panels(spring2, scale=T, main = "Spring2", method = "spearman")
+# allright!
 
 # first summer
-summer1 <- cbind(tsummer1.max, tsummer1.min, tsummer1.mean, r_newsummer1)
-pairs(summer1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer1")
+summer1 <- cbind(r_newsummer1, tsummer1.min, tsummer1.mean, tsummer1.max)
+pairs.panels(summer1, scale=T, main = "summer1", method = "spearman")
+pairs.panels(summer1, scale=T, main = "summer1")
+# highly correlated overall
 
 # secound summer
-summer2 <- cbind(tsummer2.max, tsummer2.min, tsummer2.mean, r_newsummer2)
-pairs(summer2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer2")
+summer2 <- cbind(r_newsummer2, tsummer2.min, tsummer2.mean, tsummer2.max)
+pairs.panels(summer2, scale=T, main = "summer2", method = "spearman")
+pairs.panels(summer2, scale=T, main = "summer2")
+# ok
 
 # autumn
-autumn <- cbind(tautumn.max, tautumn.min, tautumn.mean, r_autumn)
-pairs(autumn, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Autumn")
+autumn <- cbind(r_autumn, tautumn.min, tautumn.mean, tautumn.max)
+pairs.panels(autumn, scale=T, main = "Autumn", method="spearman")
+pairs.panels(autumn, scale=T, main = "Autumn")
+# highly correlated overall
+
 
 # collnearity of NDVI
 ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
