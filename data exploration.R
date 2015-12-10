@@ -9,6 +9,10 @@ class(sex) # integer
 f.sex<-as.factor(sex)# transformation of sex data to class factor
 levels(f.sex) <- c("female", "male") # relevel sex
 
+female<-subset(db,sex==1)#1218
+male<-subset(db,sex==2)#1461
+#The dataset represents 1218 female and 1461 male chamois
+
 
 
 ## horn length ####################
@@ -63,7 +67,7 @@ diff(apply(weight_sexyear, 2, range))
 #graphical
 boxplot(weight~f.sex, data = db, ylab= "Weight [kg]", xlab= "sex")
 # but males have a higher variance in weight for the individuals
-#In male chamois are again two outliers wereas there are none in female
+
 
 hist(weight[sex==1],breaks=20,freq=FALSE,col=rgb(1,0,0,0.1), main="Weight", xlab= "Weight [kg]")
 hist(weight[sex==2],breaks=20,freq=FALSE,add=TRUE,col=rgb(0,0,1,0.1))
@@ -72,13 +76,11 @@ lines(density(weight[sex==2]), col="blue", lwd=2, lty=1)
 legend("topright",lwd=c(2,2),lty= c(1,2),col=c("red","blue"),legend=c("female", "male"))
 
 #The density distribution of the weight shows some irregularity in female chamois
-
+plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]")
 #The plot of horn length against weight shows some anomaly because of different scales of measurement. We analysed the scale detail  of the data.
 tapply(weight, council_cod, unique)
-#Tclassified the weitht in three classes, 
+# The Councils will be classified in thre classes according to the detalil of scale: 1 kg, 0.5kg or 0.1 kg 
 
-many integer values and some extreme values
-plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]")
 
 
 # Problems with integers and floats in weight data
@@ -114,6 +116,10 @@ summary(fgam1) # 11% of deviance explained; quite a lot for one predictor
 plot(horn~weight, data=db)
 plot(fgam1)
 
+# weight horn sex
+mwhs<-gam(horn~s(weight)+f.sex+s(q_media),data=db)
+vis.gam(mwhs,theta =40, main ="Horn~Weight+Sex", zlab="hornlength",xlab ="female          male")
+gam.check(mwhs)#model check, not great but accepable at this point. There are not all relevant variables included so far
 
 
 ## councils #####################
@@ -147,13 +153,47 @@ plot(fgam5)
 # apparantly the weight increases over the hunting period until ~ day 300 when it rapidly drops. This could  be explained that before October the animals find enough grass for feeding and grwoing, while later the winter has set on and they start to burn their body fat reserves.
 # This on the other hand leads to the conclusion, that there is an interaction between weight and Jday
 
+Julgam1<-gam(weight~s(Jday)+f.sex, data=db)
+vis.gam(Julgam3,plot.type="persp",theta=45, main="Weight ~ Julianday + Sex",zlab="weight", xlab="female       male",ylab="Day of Hunting Season")
 
-## effect of Julian day on horn length #########################
 
+
+
+## effect of Julian day on horn length  male & female #########################
+
+#Loess_horn_Julianday_male------------------------------------------------------------
+fmLoess_Jday_m <- loess(male$horn~male$Jday,family="gaussian",span=0.8)
+newday_m <- seq(from=min(male$Jday), to=max(male$Jday),by=1)
+pred_Horn_m <- predict(fmLoess_Jday_m, newday_m, se=TRUE)
+plot(horn~Jday, main ="Loess: Horn~Julianday",ylab="Hornlength [mm]",xlab="Day of the year",pch=1)
+lines(pred_Horn_m$fit~newday_m,col="blue", lwd=2)
+
+
+#Loess horn_Julianday_Female -------------------------------------------------------
+fmLoess_Jday_f <- loess(female$horn~female$Jday,family="gaussian",span=0.8)
+newday_f <- seq(from=min(female$Jday), to=max(female$Jday),by=1)
+pred_Horn_f <- predict(fmLoess_Jday_f, newday_f, se=TRUE)
+lines(pred_Horn_f$fit~newday_f,col="red", lwd=2, lty=2)
+
+abline(h=140,col="darkgreen",lwd=2,lty=3)
+abline(h=160,col="darkgreen",lwd=2,lty=3)
+legend("topright",lwd=c(2,2,2),lty=c(1,2,3),col=c("blue","red","darkgreen"),legend=c("male","female", "fix value 140 mm & 160 mm"),cex=0.8)
+# Loess regression shows decreasing hornlength at the beginning of the hunting season and increasing hornlength after day 275
+
+Julgam4<-gam(horn~s(weight)+s(Jday),data=db)
+vis.gam(Julgam4,theta=60,main="Hornlength ~ weight+Jday",zlab="Hornlength")
+
+# Gam with Interaction
+Julgam5<-gam(horn~s(weight,Jday),data=db)
+vis.gam(Julgam5,theta=60,main="Hornlength ~ (weight, Jday)",zlab="Hornlength")
+# the decrease could be effect of hunting selection but the effect has to be further invesigated including random effects of council.
+
+
+#?? nochmal ausarbeiten??
 fgam6 <- gamm(horn ~ s(Jday, bs="re") + s(Jday, weight, bs="re") + s(weight, bs="re") + f.sex, random=list(council_cod=~1, year=~1), data=db)
 summary(fgam6$gam)
 plot(fgam6$gam, page=1)
-vis.gam(fgam6)
+#vis.gam(fgam6)??????????
 summary(fgam6$lme)
 
 
@@ -167,18 +207,7 @@ summary(flm1)
 117*0.04 # over the hunting period, the horn is growing roughly about 5 mm
 # that's less than 5%, but still something
 
-# loess smoothing model
-fmLoess_Jday <- loess(horn~Jday,family="gaussian",span=0.8)
 
-# plotting the loess
-newday <- seq(from=min(Jday), to=max(Jday),by=1)
-pred_Horn <- predict(fmLoess_Jday, newday, se=TRUE)
-plot(horn~Jday, main ="Loess Regression: Horn~Julianday",ylab="Hornlength [mm]",xlab="Day of the year",pch=1)
-lines(pred_Horn$fit~newday,col="red", lwd=2)
-abline(h=140,col="blue",lty=2,lwd=2)
-legend("topright",lwd=c(2,2),lty=c(1,2),col=c("red","blue"),legend=c("loess regression", " fix value 140 mm"))
-#The loess regression reveals about constant hornlength during the hunting season
-# consistent with gam
 
 
 # spatial distribution ###############
@@ -223,6 +252,44 @@ vis.gam(m2, plot.type = "contour", main="Elevation", xlab="", ylab="")
 with(db, points(x.council, y.council, col=area_cod, pch=20, cex=1.5))
 with(db, legend("bottomright", legend=paste("Area", unique(area_cod)), col=unique(area_cod), pch=20))
 
+
+#----Loess Weight elevation male------------------------------------
+
+fmLoess_WE_m <- loess(male$weight~male$q_media,family="gaussian",span=0.75)
+newEle_m <- seq(from=min(male$q_media), to=max(male$q_media),by=1)
+pred_W_m <- predict(fmLoess_WE_m, newEle_m, se=TRUE)
+plot(weight~q_media, main ="Loess Regression: Weight~Elevation",ylab="Weight [kg]",xlab="Elevation [m a.s.l.]",pch=1)
+lines(pred_W_m$fit~newEle_m,col="blue", lwd=2)
+
+
+#Loess Weight elevation Female -------------------------------------------------------
+
+
+fmLoess_WE_f <- loess(female$weight~female$q_media,family="gaussian",span=0.75)
+newEle_f <- seq(from=min(female$q_media), to=max(female$q_media),by=1)
+pred_W_f <- predict(fmLoess_WE_f, newEle_f, se=TRUE)
+
+lines(pred_W_f$fit~newEle_f,col="red", lwd=2, lty =2)
+abline(h=15,lty=3,col="darkgreen",lwd=2)
+legend("topright",lwd=c(2,2,2),lty=c(1,2,3),col=c("blue","red","darkgreen"),legend=c("male","female", "fix value 15 kg"),cex=0.8)
+
+# LOESS Horn Elevation-----------------------------------
+
+
+
+fmLoess_HE_m <- loess(male$horn~male$q_media,family="gaussian",span=0.75)
+newEle_m <- seq(from=min(male$q_media), to=max(male$q_media),by=1)
+pred_H_m <- predict(fmLoess_HE_m, newEle_m, se=TRUE)
+plot(horn~q_media, main ="Loess Regression: Horn~Elevation",ylab="horn [mm]",xlab="Elevation [m a.s.l.]",pch=1)
+lines(pred_H_m$fit~newEle_m,col="blue", lwd=2)
+#Loess Horn Female---------------------------------
+
+fmLoess_HE_f <- loess(female$horn~female$q_media,family="gaussian",span=0.75)
+newEle_f <- seq(from=min(female$q_media), to=max(female$q_media),by=1)
+pred_H_f <- predict(fmLoess_HE_f, newEle_f, se=TRUE)
+
+lines(pred_H_f$fit~newEle_f,col="red", lwd=2,lty =2)
+legend("topright",lwd=c(2,2),lty=c(1,2),col=c("blue","red"),legend=c("male","female"))
 
 
 ## effect of aspect on horn length ############

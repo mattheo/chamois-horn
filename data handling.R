@@ -8,6 +8,7 @@ outersect <- function(x, y) {
 db_chamois1 <- read.csv("chamois1.csv", sep=";")
 db_chamois2 <- read.csv("chamois2.csv", sep=";")
 
+
 #rename columns so merging can work its magic
 db_chamois1$Snow_cover_winter2 <- db_chamois1$Snow_cover_winter
 db_chamois1$snow_winter2 <- db_chamois1$snow_winter
