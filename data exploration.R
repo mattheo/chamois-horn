@@ -264,7 +264,10 @@ cor.test(db$nao_d, db$snow_winter2)
 
 # NAO is not a useful predictor since we have higher resolution on the highly correlated weather data
 
-
+# first winter
+source("collinearity check.R")
+winter1 <- cbind(snow_winter1, Snow_cover_winter1, twinter.max1, twinter.mean1, twinter.min1)
+pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter1")
 
 # data transformation
 with(db_chamois1, tapply(snow_winter2, list(area_cod, year), mean)) # --> only 2 station, weather data in area1 are mixed
