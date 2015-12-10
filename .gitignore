@@ -1,5 +1,7 @@
 # Ignore Data files
 *.RData
+*.RDATA
+RDATA
 RData
 *.csv
 *.xlsx
