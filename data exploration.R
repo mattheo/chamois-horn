@@ -79,7 +79,12 @@ legend("topright",lwd=c(2,2),lty= c(1,2),col=c("red","blue"),legend=c("female", 
 plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]")
 #The plot of horn length against weight shows some anomaly because of different scales of measurement. We analysed the scale detail  of the data.
 tapply(weight, council_cod, unique)
+
 # The Councils will be classified in thre classes according to the detalil of scale: 1 kg, 0.5kg or 0.1 kg 
+
+
+# many integer values and some extreme values
+plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]")
 
 
 
@@ -329,10 +334,10 @@ with(db, tapply(density, list(year, area_cod), unique))
 ## Collinearity in predictors ##########################
 
 # collinearity in elevation data
-cor(db[c("q_media", "q_min", "q_max")])
+pairs.panels(db[c("q_media", "q_min", "q_max")])
 q_range <- db$q_max - db$q_min
-with(db, cor(q_media, q_range))
-with(db, plot(q_media, q_range)) # not okay yet
+cor.test(db$q_media, q_range, method = "spearman")
+plot(db$q_media, q_range) # maybe ok
 # we still have to decide what we want to use for the model
 
 
@@ -348,15 +353,60 @@ cor.test(db$nao_d, db$snow_winter2)
 
 # NAO is not a useful predictor since we have higher resolution on the highly correlated weather data
 
+
 # first winter
-source("collinearity check.R")
+library(psych)
 winter1 <- cbind(snow_winter1, Snow_cover_winter1, twinter.max1, twinter.mean1, twinter.min1)
+pairs.panels(winter1, scale=T, main = "Winter1", method = "spearman")
 pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter1")
 
-# secound winter
+# secound winter  Snow_cover_winter2  --> out
 winter2 <- cbind(snow_winter2, Snow_cover_winter2, twinter.max2, twinter.mean2, twinter.min2)
 pairs(winter2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter2")
-# collnearity of NDVI
 
+
+# first spring
+spring1 <- cbind(tspring1.max, tspring1.min, tspring1.mean, r_spring1)
+pairs(spring1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring1")
+
+# secound spring
+spring2 <- cbind(tspring2.max, tspring2.min, tspring2.mean, r_spring2)
+pairs(spring2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring2")
+
+# first summer
+summer1 <- cbind(tsummer1.max, tsummer1.min, tsummer1.mean, r_newsummer1)
+pairs(summer1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer1")
+
+# secound summer
+summer2 <- cbind(tsummer2.max, tsummer2.min, tsummer2.mean, r_newsummer2)
+pairs(summer2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer2")
+
+# autumn
+autumn <- cbind(tautumn.max, tautumn.min, tautumn.mean, r_autumn)
+pairs(autumn, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Autumn")
+
+# collnearity of NDVI
+ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
+ndvi2 <- cbind(ndvi.maxincr2, ndvi.may2.new, ndvi.slop2, ndvi.summer2)
+
+pairs.panels(ndvi1, scale=T, main = "NDVI1", method = "spearman")
+# as expected, NDVI in may and summer are highly correlated. Pick One.
+# however, ndvi.slop is heavily skewed towards 0
+summary(ndvi.slop1)
+sum(ndvi.slop1 == 0) # only 1!
+sum(ndvi.slop1 < 0.1) # but more then 2000 are smaller than 0.1
+sum(ndvi.slop1 > 0.1)
+# log transform?
+log.ndvi.slop1 <- log(ndvi.slop1 + 0.5*0.001)
+hist(log.ndvi.slop1)
+summary(log.ndvi.slop1)
+# maybe better, ask simone!
+
+pairs.panels(ndvi2, scale=T, main = "NDVI2", method = "spearman")
+# same for the second year: may and summer highly correlated
+summary(ndvi.slop2) # no zeros
+log.ndvi.slop2 <- log(ndvi.slop2)
+hist(log.ndvi.slop2)
+# maybe better?
 
 
