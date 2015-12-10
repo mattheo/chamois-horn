@@ -75,9 +75,9 @@ legend("topright",lwd=c(2,2),lty= c(1,2),col=c("red","blue"),legend=c("female", 
 
 #The plot of horn length against weight shows some anomaly because of different scales of measurement. We analysed the scale detail  of the data.
 tapply(weight, council_cod, unique)
-#Tclassified the weitht in three classes, 
+# classified the weight in three classes,
 
-many integer values and some extreme values
+# many integer values and some extreme values
 plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]")
 
 
@@ -289,7 +289,9 @@ pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel =
 # secound winter
 winter2 <- cbind(snow_winter2, Snow_cover_winter2, twinter.max2, twinter.mean2, twinter.min2)
 pairs(winter2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter2")
-# collnearity of NDVI
 
+
+# collnearity of NDVI
+ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi)
 
 
