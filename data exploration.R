@@ -289,6 +289,15 @@ pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel =
 # secound winter
 winter2 <- cbind(snow_winter2, Snow_cover_winter2, twinter.max2, twinter.mean2, twinter.min2)
 pairs(winter2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter2")
+
+# first spring
+spring1 <- cbind(tspring1.max, tspring1.min, tspring1.mean, r_spring1, r_apr_mag_1, r_giu_lug_1, r_ago_set_1)
+pairs(spring1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring1")
+
+# secound spring
+spring2 <- cbind(tspring2.max, tspring2.min, tspring2.mean, r_spring2, r_apr_mag_2, r_giu_lug_2, r_ago_set_2)
+pairs(spring2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring2")
+
 # collnearity of NDVI
 
 
