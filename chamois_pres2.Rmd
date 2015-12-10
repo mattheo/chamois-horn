@@ -3,6 +3,7 @@ title: "Chamois Horn size in Eastern Italian Alps"
 author: "Franz Johann, Liangwen He, Matthias Theobald"
 date: "10. Dezember 2015"
 output: ioslides_presentation
+font_adjustment: -1
 ---
 ```{r echo=FALSE, include=FALSE}
 library(mgcv)
@@ -139,8 +140,28 @@ vis.gam(fgam2, theta=60, phi=15, main="Hornlength ~ s(Weight, Julian day)")
 <img src="imgs/Loess_Weight_Ele.jpeg" width="800">  
 
 ## Data Exploration: Horn~ Elevation
-<img src="imgs/Loess_Horn_Ele.jpeg" width="800">                                               
-                                                
+<img src="imgs/Loess_Horn_Ele.jpeg" width="800">
+
+## Random Effects
+
+- We identified two random effects a priori
+
+```{r}
+head(with(db, tapply(horn, list(council_cod, year), mean)))
+```
+
+## Random Effects: Year and Council
+- 50 councils with multiple measurements
+- Not every council has the same number of measurements
+
+- Also a difference in Horn length per year
+- Not every year has the same number of measurements
+
+```{r eval=FALSE}
+gamm(horn ~ ..., random=(1|year) + (1|council_cod))
+```
+
+
 ## Thank You
 <img src="imgs/chamois2.jpg" width="800">
 
