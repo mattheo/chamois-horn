@@ -122,6 +122,10 @@ db <- merge(db_merge[, !names(db_merge) %in% weather_data], station39, by="year"
 db$r_summer_1 <- NULL
 db$r_summer_2 <- NULL
 
+# remove old may ndvi. it's incorrect
+db$ndvi.may1 <- NULL
+db$ndvi.may2 <- NULL
+
 # check for NA
 with(db, tapply(snow_winter1, year, function(y) sum(is.na(y))))
 summary(db$snow_winter1)
