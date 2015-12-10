@@ -262,10 +262,10 @@ with(db, tapply(density, list(year, area_cod), unique))
 ## Collinearity in predictors ##########################
 
 # collinearity in elevation data
-cor(db[c("q_media", "q_min", "q_max")])
+pairs.panels(db[c("q_media", "q_min", "q_max")])
 q_range <- db$q_max - db$q_min
-with(db, cor(q_media, q_range))
-with(db, plot(q_media, q_range)) # not okay yet
+cor.test(db$q_media, q_range, method = "spearman")
+plot(db$q_media, q_range) # maybe ok
 # we still have to decide what we want to use for the model
 
 
