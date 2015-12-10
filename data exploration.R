@@ -281,34 +281,34 @@ cor.test(db$nao_d, db$snow_winter2)
 
 # NAO is not a useful predictor since we have higher resolution on the highly correlated weather data
 
-# first winter
+# first winter   Snow_cover_winter1 --> out
 source("collinearity check.R")
 winter1 <- cbind(snow_winter1, Snow_cover_winter1, twinter.max1, twinter.mean1, twinter.min1)
 pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter1")
 
-# secound winter
+# secound winter  Snow_cover_winter2  --> out
 winter2 <- cbind(snow_winter2, Snow_cover_winter2, twinter.max2, twinter.mean2, twinter.min2)
 pairs(winter2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter2")
 
 
 # first spring
-spring1 <- cbind(tspring1.max, tspring1.min, tspring1.mean, r_spring1, r_apr_mag_1, r_giu_lug_1, r_ago_set_1)
+spring1 <- cbind(tspring1.max, tspring1.min, tspring1.mean, r_spring1)
 pairs(spring1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring1")
 
 # secound spring
-spring2 <- cbind(tspring2.max, tspring2.min, tspring2.mean, r_spring2, r_apr_mag_2, r_giu_lug_2, r_ago_set_2)
+spring2 <- cbind(tspring2.max, tspring2.min, tspring2.mean, r_spring2)
 pairs(spring2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring2")
 
 # first summer
-summer1 <- cbind(tsummer1.max, tsummer1.min, tsummer1.mean, r_newsummer1, r_apr_mag_1, r_giu_lug_1, r_ago_set_1)
+summer1 <- cbind(tsummer1.max, tsummer1.min, tsummer1.mean, r_newsummer1)
 pairs(summer1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer1")
 
 # secound summer
-summer2 <- cbind(tsummer2.max, tsummer2.min, tsummer2.mean, r_newsummer2, r_apr_mag_2, r_giu_lug_2, r_ago_set_2)
+summer2 <- cbind(tsummer2.max, tsummer2.min, tsummer2.mean, r_newsummer2)
 pairs(summer2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer2")
 
 # autumn
-autumn <- cbind(tautumn.max, tautumn.min, tautumn.mean, r_autumn, r_apr_mag_1, r_giu_lug_1, r_ago_set_1)
+autumn <- cbind(tautumn.max, tautumn.min, tautumn.mean, r_autumn)
 pairs(autumn, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Autumn")
 
 # collnearity of NDVI
