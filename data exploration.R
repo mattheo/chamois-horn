@@ -316,5 +316,24 @@ ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
 ndvi2 <- cbind(ndvi.maxincr2, ndvi.may2.new, ndvi.slop2, ndvi.summer2)
 
 pairs(ndvi1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "NDVI1")
+# as expected, NDVI in may and summer are highly correlated. Pick One.
+# however, ndvi.slop is heavily skewed towards 0
+sum(ndvi.slop1 == 0) # only 1!
+sum(ndvi.slop1 < 0.1) # but more then 2000 are smaller than 0.1
+sum(ndvi.slop1 > 0.1)
+# log transform?
+log.ndvi.slop1 <- log(ndvi.slop1 + 0.5*0.001)
+hist(log.ndvi.slop1)
+summary(log.ndvi.slop1)
+
+summary(gam(horn ~ s(ndvi.slop1, bs="cs"), data=db))
+plot(gam(horn ~ s(ndvi.slop1, bs="cs"), data=db))
+
+summary(gam(horn ~ s(log.ndvi.slop1, bs="cs"), data=db))
+plot(gam(horn ~ s(log.ndvi.slop1, bs="cs"), data=db))
+
+#ndvi.slop is probably not a good predictor
 
 pairs(ndvi2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "NDVI2")
+# same for the second year
+
