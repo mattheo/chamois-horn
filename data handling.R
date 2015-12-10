@@ -133,4 +133,10 @@ summary(db$r_autumn)
 summary(db$tautumn.min)
 # No NAs!
 
+
+# merge count: which councils have integer weight, which have 0.5 and which have 0.1
+count <- read.csv("count.csv", sep=";")
+db <- merge(db, count, by="council_cod", all.y=T)
+
+
 save(db, file="db.RData")

@@ -75,9 +75,9 @@ legend("topright",lwd=c(2,2),lty= c(1,2),col=c("red","blue"),legend=c("female", 
 
 #The plot of horn length against weight shows some anomaly because of different scales of measurement. We analysed the scale detail  of the data.
 tapply(weight, council_cod, unique)
-#Tclassified the weitht in three classes, 
+# classified the weight in three classes,
 
-many integer values and some extreme values
+# many integer values and some extreme values
 plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]")
 
 
@@ -290,6 +290,7 @@ pairs(winter1, lower.panel = panel.smooth2,upper.panel = panel.cor, diag.panel =
 winter2 <- cbind(snow_winter2, Snow_cover_winter2, twinter.max2, twinter.mean2, twinter.min2)
 pairs(winter2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Winter2")
 
+
 # first spring
 spring1 <- cbind(tspring1.max, tspring1.min, tspring1.mean, r_spring1, r_apr_mag_1, r_giu_lug_1, r_ago_set_1)
 pairs(spring1, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Spring1")
@@ -307,6 +308,6 @@ summer2 <- cbind(tsummer2.max, tsummer2.min, tsummer2.mean, r_newsummer2, r_apr_
 pairs(summer2, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist, main = "Summer2")
 
 # collnearity of NDVI
-
+ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi)
 
 
