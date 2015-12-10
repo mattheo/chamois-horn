@@ -18,9 +18,15 @@ diff(horn_sex) # difference = 22.4 mm
 # change over the years
 (horn_sexyear <- with(db, tapply(horn, list(year, f.sex), mean)))
 apply(horn_sexyear, 2, summary)
-diff(apply(horn_sexyear, 2, range))
+(apply(horn_sexyear, 2, sd))
 # males have less variance in mean horn length over the years
+boxplot(horn_sexyear, ylab="Hornlength [mm]", main="Mean Hornlength over years")
 
+
+
+# Variance of horn size in sexes
+with(db, tapply(horn, sex, sd))
+# males have higher variance in general!
 
 # graphical
 boxplot(horn~f.sex, data = db, main= "Hornlength ",ylab= "length [mm]", xlab= "sex")
@@ -83,6 +89,10 @@ plot(with(db, tapply(int_weight, council_cod, function(y) sum(y)/length(y))), ty
 
 plot(with(db, tapply(int_weight, area_cod, function(y) sum(y)/length(y))), type="h", cex=1.4, main="weight: percentage whole numbers", xlab="area", ylab="")
 
+## spatial distribution of weight ###################
+fm_spatial_weight <- gam(weight ~ s(x.council, y.council), data=db)
+vis.gam(fm_spatial_weight)
+
 
 ## effect of weight on horn length ####################
 
@@ -90,6 +100,15 @@ fgam1<-gam(horn~s(weight, bs="cs"),data=db)
 summary(fgam1) # 11% of deviance explained; quite a lot for one predictor
 plot(horn~weight, data=db)
 plot(fgam1)
+
+## councils #####################
+
+t(with(db, tapply(horn, council_cod, length)))
+# council 15 has the most hunted anmimals
+hist(db$council_cod, breaks=length(unique(db$council_cod)))
+
+with(db, tapply(horn, list(council_cod, year), length))
+# also consistently over the years, council 15 has the most kills
 
 
 ## Julian day ####################
