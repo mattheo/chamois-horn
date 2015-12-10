@@ -17,6 +17,7 @@ levels(f.sex) <- c("female", "male") # relevel sex
 (horn_sex <- with(db, tapply(horn, f.sex, mean)))
 diff(horn_sex) # difference = 22.4 mm
 
+
 # change over the years
 (horn_sexyear <- with(db, tapply(horn, list(year, f.sex), mean)))
 apply(horn_sexyear, 2, summary)
@@ -34,15 +35,11 @@ boxplot(horn~f.sex, data = db, main= "Hornlength ",ylab= "length [mm]", xlab= "s
 
 hist(horn[sex==1],breaks=40,freq=FALSE,col=rgb(1,0,0,0.1), main="Hornlength", xlab= "Length [mm]")
 hist(horn[sex==2],breaks=40,freq=FALSE,add=TRUE,col=rgb(0,0,1,0.1))
-lines(density(horn[sex==1]), col="red", lwd=2)
-lines(density(horn[sex==2]), col="blue", lwd=2)
-legend("topright",lwd=c(2,2),col=c("red","blue"),legend=c("female", "male"))
+lines(density(horn[sex==1]), col="red", lwd=2,lty =2)
+lines(density(horn[sex==2]), col="blue", lwd=2, lty =1)
+legend("topright",lwd=c(2,2), lty= c(2,1),col=c("red","blue"),legend=c("female", "male"))
 
 #male and female horn length differs at an average of 22,4 mm. The boxplot of the hornlength distribution shows two outliers or extreme values respectively in both groups, which should be further investigated. The horn lengths are close to normally distributed
-
-# plots of horn lengths for each individual
-plot (horn[sex==2], main = "Hornlength male", ylab = "Length [mm]")
-plot (horn[sex==1],main = "Hornlength female", ylab = "Length [mm]")
 
 
 
@@ -54,6 +51,10 @@ diff(weight_sex) # difference = 0.34 kg
 # difference in mean weight not as substantial as difference in mean horn length
 
 # change over the years
+
+boxplot(horn~year, main = "Hornlength", xlab="Year", ylab= "Hornlength")
+# in different years the distribution of hornlength is different
+
 (weight_sexyear <- with(db, tapply(weight, list(year, f.sex), mean)))
 apply(weight_sexyear, 2, summary)
 diff(apply(weight_sexyear, 2, range))
@@ -66,13 +67,17 @@ boxplot(weight~f.sex, data = db, ylab= "Weight [kg]", xlab= "sex")
 
 hist(weight[sex==1],breaks=20,freq=FALSE,col=rgb(1,0,0,0.1), main="Weight", xlab= "Weight [kg]")
 hist(weight[sex==2],breaks=20,freq=FALSE,add=TRUE,col=rgb(0,0,1,0.1))
-lines(density(weight[sex==1]), col="red", lwd=2)
-lines(density(weight[sex==2]), col="blue", lwd=2)
-legend("topright",lwd=c(2,2),col=c("red","blue"),legend=c("female", "male"))
+lines(density(weight[sex==1]), col="red", lwd=2, lty = 2)
+lines(density(weight[sex==2]), col="blue", lwd=2, lty=1)
+legend("topright",lwd=c(2,2),lty= c(1,2),col=c("red","blue"),legend=c("female", "male"))
 
-#the density distribution of the weight dara shows some irregularity in female chamois
-# how can we tackle this ????
-#The plot of horn length against weight shows some anomaly because of many integer values and some extreme values
+#The density distribution of the weight shows some irregularity in female chamois
+
+#The plot of horn length against weight shows some anomaly because of different scales of measurement. We analysed the scale detail  of the data.
+tapply(weight, council_cod, unique)
+#Tclassified the weitht in three classes, 
+
+many integer values and some extreme values
 plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]")
 
 
