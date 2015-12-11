@@ -139,5 +139,16 @@ summary(db$tautumn.min)
 count <- read.csv("count.csv", sep=";")
 db <- merge(db, count, by="council_cod", all.y=T)
 
+# aspect is an unreliable predictor since its not equally distributed
+# include aspect as factr: facing south and facing north
+db$aspect <- as.factor(ifelse(db$asp < 90 | db$asp > 270, "N", "S"))
+
+# transform sex to factors
+db$f.sex < -as.factor(db$sex)
+levels(db$f.sex) <- c("female", "male") # relevel sex
+
+#transform substrate to factors
+db$f.substrate <- as.factor(db$substrate)
+levels(db$f.substrate) <- c("sili", "calc")
 
 save(db, file="db.RData")

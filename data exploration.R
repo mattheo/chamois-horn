@@ -5,9 +5,6 @@ load("db.RData")
 attach(db)
 
 # Getting to know the data
-class(sex) # integer
-f.sex<-as.factor(sex)# transformation of sex data to class factor
-levels(f.sex) <- c("female", "male") # relevel sex
 
 female<-subset(db,sex==1)#1218
 male<-subset(db,sex==2)#1461
@@ -80,7 +77,7 @@ plot(horn~weight,main= "Horn ~ Weight",xlab="Weight [kg]", ylab="Hornlength [mm]
 #The plot of horn length against weight shows some anomaly because of different scales of measurement. We analysed the scale detail  of the data.
 tapply(weight, council_cod, unique)
 
-# The Councils will be classified in thre classes according to the detalil of scale: 1 kg, 0.5kg or 0.1 kg 
+# The Councils will be classified in thre classes according to the detalil of scale: 1 kg, 0.5kg or 0.1 kg
 
 
 # many integer values and some extreme values
@@ -312,9 +309,19 @@ plot(fgam3)
 summary(db$asp)
 # but from 36 to 340 degrees
 # -> the cycle is closed "too early"
-fgam4 <- gam(horn ~ s(asp, bs="cs"), data=db)
+fgam4 <- gam(horn ~ s(asp, bs="cs"), data=db, gamma=1.4)
 summary(fgam4)
 plot(fgam4)
+
+
+fgam7 <- gam(horn ~ s(twinter.max1, k = 3, by=aspect), data=db)
+gam.check(fgam7)
+plot(fgam7, res=T, page=1, scale=F)
+vis.gam(fgam7, theta=45)
+summary(fgam7)
+
+lm1 <- lm(horn ~ cos(asp))
+summary(lm1)
 # but this explaines least deviance and is has a worse p-value
 
 # turn the aspect, so the gap is not a 0 <-> 360 °
@@ -339,6 +346,12 @@ pairs.panels(db[c("q_media", "q_min", "q_max")])
 q_range <- db$q_max - db$q_min
 cor.test(db$q_media, q_range, method = "spearman")
 plot(db$q_media, q_range) # maybe ok
+
+# calculate elevation relative to mean
+q_relmin <- q_min - q_media
+q_relmax <- q_max - q_media
+
+pairs.panels(data.frame(q_relmin, q_media, q_relmax))
 # we still have to decide what we want to use for the model
 
 
