@@ -1,5 +1,6 @@
 library(randomForest)
 load("db.RData")
+f.sex<-as.factor(db$sex)
 
 #Randomforest of selected Variables which are used in fcham1
 
