@@ -144,11 +144,17 @@ db <- merge(db, count, by="council_cod", all.y=T)
 db$aspect <- as.factor(ifelse(db$asp < 90 | db$asp > 270, "N", "S"))
 
 # transform sex to factors
-db$f.sex < -as.factor(db$sex)
+db$f.sex <- as.factor(db$sex)
 levels(db$f.sex) <- c("female", "male") # relevel sex
 
 #transform substrate to factors
 db$f.substrate <- as.factor(db$substrate)
 levels(db$f.substrate) <- c("sili", "calc")
+
+#factorize year
+db$f.year <- as.factor(db$year)
+
+# factorize council code
+db$f.council_cod <- as.factor(db$council_cod)
 
 save(db, file="db.RData")
