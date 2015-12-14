@@ -157,4 +157,11 @@ db$f.year <- as.factor(db$year)
 # factorize council code
 db$f.council_cod <- as.factor(db$council_cod)
 
+
+#calculate log ndvi slope
+db$log.ndvi.slop1 <- log(db$ndvi.slop1 + 0.5*0.001)
+db$log.ndvi.slop2 <- log(db$ndvi.slop2)
+
+
+
 save(db, file="db.RData")
