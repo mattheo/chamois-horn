@@ -70,7 +70,7 @@ varImpPlot(RF5)
 #Weight is the most relevant predictor followed by Julianday. The average elevation is predictor on rank 3 followed by ndvisummer1and ndvi.may1.new. Thereafter follow percentage of open area and  minimum elevation (q_min).Density has about the same relevance as ndvimax.incr. As well ndvi.maxincrement as ndvi.slope are more relevant predictors than temperature, rain or snow. Also substrate and aspect play a minor role. The relevance of the selected variables for the horngrowth is about the same in both sexes. The small variability in weather data could be a reason of this ranking
 
 
-incl#uding x-council and y council
+#including x-council and y council
 
 RF6<-randomForest(horn ~  (x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new)+ (ndvi.summer1) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=db)
 varImpPlot(RF6)
