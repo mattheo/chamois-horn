@@ -1,64 +1,68 @@
 library(mgcv)
-library(gamm4)
 load("db.RData")
 
-## FIrst GAMM ##################
 
 
-fcham1 <- gam(horn ~ f.sex + s(x.council, y.council) + s(Jday) + s(q_media, bs="cs") + s(q_min, bs="cs") + s(weight) + f.substrate + s(density, bs="cs") + s(ndvi.slop1, bs="cs") + s(ndvi.maxincr1, bs="cs") + s(ndvi.may1.new, bs="cs") + s(ndvi.slop2, bs="cs") + s(ndvi.maxincr2, bs="cs") + s(Perc.area.aperta, bs="cs") + s(snow_winter1, by=aspect, k=3) + s(r_newsummer1, k=3) + s(snow_winter2, by=aspect, k=3) + s(r_spring2, k=3) + s(r_newsummer2, k=3) + s(twinter.mean1, k=3) + s(tspring1.mean, k=3) + s(tsummer1.mean, k=3) + s(twinter.mean2, k=3) + s(tspring2.mean, k=3) + s(tsummer2.mean, k=3), data=db)
-
-# gamm(y ~  ..., random=list(council_cod=~1, year=~1))
-
-summary(fcham1)
-
-
-
-# simple GAMM with random effects and the most important predictors
-fgamm_s1 <- gamm4(horn ~ f.sex + s(weight, bs="cs") + s(Jday, bs="cs") + s(x.council, y.council) + s(q_media, bs="ts"), random= ~ (1|council_cod) + (1|year), data=db, REML=F)
-
-# gamm4 works, but is too slow
-summary(fgamm_s1$gam)
-AIC(fgamm_s1$lme)
-
-gam.check(fgamm_s1$gam)
-effects(fgamm_s1$gam)
-plot(fgamm_s1$gam)
-#plot(fgamm_s1$lme)
-
-#######################################
-# gam with bs="re
+# gam with bs="re ################
 
 fcham_s1 <-  gam(horn ~ f.sex + s(weight, bs="ts") + s(Jday, bs="ts") + s(x.council, y.council) + s(q_media, bs="ts") + s(factor(db$year), bs="re") + s(factor(db$council_cod), bs="re"), data=db, REML=F)
 
-summary(fcham_s1)
-# q_media is not signifikant, has no effect
-# Jday is linear and can be removed
+summary(fcham_s1) # Deviance explained = 51.8%
+# q_media is not significant, has no effect
+# Jday is linear and can be moved to the linear part
 plot(fcham_s1, page=1)
 # vis.gam(fcham_s1, view=c("x.council", "y.council"))
-gam.check(fcham_s1)
-AIC(fcham_s1)
+gam.check(fcham_s1) # fine
+AIC(fcham_s1) # 21943.3
 
-# Jday in the linear part
+# Jday in the linear part ###############
 fcham_s2 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
 
-summary(fcham_s2)
-AIC(fcham_s2)
-gam.check(fcham_s2)
+summary(fcham_s2) # Deviance explained = 51.8%
+AIC(fcham_s2) # 21942.99
+gam.check(fcham_s2) # fine
 
 
-# add substrate
-fcham_s3 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(f.year, bs="re") + s(f.council_cod, bs="re") + f.substrate, data=db, REML=F)
+# add substrate #################
+fcham_s3 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re") + f.substrate, data=db, REML=F)
 
-summary(fcham_s3)
+summary(fcham_s3) # Deviance explained = 51.8%
 # substrate has a siginificant effect (almost 8mm longer horns on calc)
+AIC(fcham_s3) # 21942.04
+gam.check(fcham_s3) # fine
 
 
-# is there an interaction between sex and substrate?
-fcham_s4 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(f.year, bs="re") + s(f.council_cod, bs="re") + f.sex*f.substrate, data=db, REML=F)
+# interaction between sex and substrate? #################
+fcham_s4 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re") + f.sex*f.substrate, data=db, REML=F)
 
 summary(fcham_s4)
+# no interaction between sex and substrate
+AIC(fcham_s3) # 21942.04
 
 
-fcham_s5 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(q_media, bs="ts") + s(factor(db$year), bs="re") + s(factor(db$council_cod), bs="re") + s(ndvi.may1.new, by=f.sex) + f.substrate*f.sex, data=db, REML=F)
+# ndvi may in both years important? ################
+fcham_s5 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re") + f.substrate + s(ndvi.may1.new, bs="ts") + s(ndvi.may2.new, bs="ts"), data=db, REML=F)
 
-summary(fcham_s5)
+summary(fcham_s5) # Deviance explained =   52%
+# it performs better, but may1 is definitley not significant
+AIC(fcham_s5) # 21937.6
+plot(fcham_s5)
+gam.check(fcham_s5) # there is a problem with both ndvi
+
+
+# remove may1 ###################
+fcham_s6 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re") + f.substrate + s(ndvi.may2.new), data=db, REML=F)
+
+summary(fcham_s6) # Deviance explained =   52%
+# slightly better
+plot(fcham_s6, select = 6)
+gam.check(fcham_s6) # still problematic
+AIC(fcham_s6) # 21937.58
+
+
+# interaction ndvi may2 with sex #####################
+fcham_s7 <-  gam(horn ~ f.sex + s(weight, bs="ts") + Jday + s(x.council, y.council) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re") + f.substrate + s(ndvi.may2.new, by=f.sex), data=db, REML=F)
+
+summary(fcham_s7) # Deviance explained = 51.9%
+# less deviance explained
+AIC(fcham_s7) # 21939.81 slightly worse
