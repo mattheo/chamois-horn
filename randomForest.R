@@ -74,3 +74,40 @@ varImpPlot(RF5)
 
 RF6<-randomForest(horn ~  (x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new)+ (ndvi.summer1) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=db)
 varImpPlot(RF6)
+
+#    Weight   ##############################################################
+RF_weight<-randomForest(horn ~  (x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new)+ (ndvi.summer1) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=db)
+par(mfrow=c(1,1))
+varImpPlot(RF_weight)
+RF_weight_m<-randomForest(horn ~  (x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new)+ (ndvi.summer1) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=male_db)
+
+par(mfrow=c(1,2))
+varImpPlot(RF_weight_m)
+
+RF_weight_f<-randomForest(horn ~  (x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new)+ (ndvi.summer1) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=1000, data=female_db)
+
+varImpPlot(RF_weight_m)
+varImpPlot(RF_weight_f)
+# without q-media
+RF_weight_m2 <- update(RF_weight_m, . ~ . - (q_media))
+RF_weight_f2 <- update(RF_weight_f, . ~ . - (q_media))
+varImpPlot(RF_weight_m2)
+varImpPlot(RF_weight_f2)
+# without council coordinates
+RF_weight_m3 <- update(RF_weight_m2, . ~ . - x.council- y.council)
+RF_weight_f3 <- update(RF_weight_f2, . ~ . - x.council -y.council)
+varImpPlot(RF_weight_m3)
+varImpPlot(RF_weight_f3)
+# adding  ndvi.summer2-------------
+RF_weight_m4 <- update(RF_weight_m3, . ~ . + ndvi.summer2)
+RF_weight_f4 <- update(RF_weight_f3, . ~ . + ndvi.summer2)
+varImpPlot(RF_weight_m4)
+varImpPlot(RF_weight_f4)
+#summer1 less effect on male, perc area aperta less effect on male,density less effect on male
+
+RF_weight_m4 <- update(RF_weight_m3, . ~ . + ndvi.summer2)
+RF_weight_f4 <- update(RF_weight_f3, . ~ . + ndvi.summer2)
+varImpPlot(RF_weight_m4)
+varImpPlot(RF_weight_f4)
+
+

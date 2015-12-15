@@ -169,6 +169,7 @@ db$q_range <- db$q_max - db$q_min
 
 
 # add pca for ndvi
+attach(db) # had to add it,otherwise it did not work. You find probably a better way to write (Franz)
 pca <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T)
 summary(pca)
 # two PCS explain enough variance
