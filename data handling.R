@@ -160,11 +160,23 @@ db$f.council_cod <- as.factor(db$council_cod)
 
 
 #calculate log ndvi slope
+head(sort(unique(db$ndvi.slop1)))
 db$log.ndvi.slop1 <- log(db$ndvi.slop1 + 0.5*0.001)
 db$log.ndvi.slop2 <- log(db$ndvi.slop2)
 
 # add q_range to db
 db$q_range <- db$q_max - db$q_min
+
+
+# add pca for ndvi
+# pca ndvi
+pca <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T)
+summary(pca)
+round(pca$rotation, 2)
+summary(pca$x)
+db$pc1.ndvi <- pca$x[, 1]
+db$pc2.ndvi <- pca$x[, 2]
+
 
 
 save(db, file="db.RData")
