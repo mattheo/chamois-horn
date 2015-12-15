@@ -1,4 +1,6 @@
 library(mgcv)
+library(psych)
+
 
 
 load("db.RData")
@@ -339,7 +341,6 @@ with(db, tapply(density, list(year, area_cod), unique))
 
 
 ## Collinearity in predictors ##########################
-library(psych)
 
 # collinearity in elevation data
 pairs.panels(db[c("q_media", "q_min", "q_max")])
