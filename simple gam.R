@@ -5,7 +5,7 @@ load("db.RData")
 
 # gam with bs="re ################
 
-fcham_s1 <-  gam(horn ~ f.sex + s(weight, bs="ts") + s(Jday, bs="ts") + s(x.council, y.council) + s(q_media, bs="ts") + s(factor(db$year), bs="re") + s(factor(db$council_cod), bs="re"), data=db, REML=F)
+fcham_s1 <-  gam(horn ~ f.sex + s(weight, bs="ts") + s(Jday, bs="ts") + s(x.council, y.council) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
 
 summary(fcham_s1) # Deviance explained = 51.8%
 # q_media is not significant, has no effect
