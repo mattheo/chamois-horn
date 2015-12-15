@@ -136,6 +136,7 @@ summary(db$tautumn.min)
 
 
 # merge count: which councils have integer weight, which have 0.5 and which have 0.1
+# adds category
 count <- read.csv("count.csv", sep=";")
 db <- merge(db, count, by="council_cod", all.y=T)
 
@@ -162,6 +163,8 @@ db$f.council_cod <- as.factor(db$council_cod)
 db$log.ndvi.slop1 <- log(db$ndvi.slop1 + 0.5*0.001)
 db$log.ndvi.slop2 <- log(db$ndvi.slop2)
 
+# add q_range to db
+db$q_range <- db$q_max - db$q_min
 
 
 save(db, file="db.RData")
