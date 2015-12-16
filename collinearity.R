@@ -1,4 +1,5 @@
 library(Hmisc)
+library(psych)
 attach(db)
 
 
