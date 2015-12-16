@@ -169,17 +169,51 @@ db$q_range <- db$q_max - db$q_min
 
 
 # add pca for ndvi
-# with(db, {
-#     pca <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T)
-#     summary(pca)
-#     # two PCS explain enough variance
-#     round(pca$rotation, 2)
-#     summary(pca$x)
-#     biplot(pca)
-#     db$pc1.ndvi <- pca$x[, 1]
-#     db$pc2.ndvi <- pca$x[, 2]
-# })
+with(db, {
+    # may ndvis
+    pca1 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T)
+    summary(pca1)
+    # two PCS explain enough variance
+    round(pca1$rotation, 2)
+    biplot(pca1)
 
+    # all ndvis
+    pca2 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T)
+    summary(pca2)
+    # two are enough
+    biplot(pca2)
+
+    # summer ndvis
+    pca3 <- prcomp(cbind(ndvi.summer1, ndvi.summer2), scale=T)
+    summary(pca3)
+    # pc1 is enough
+    biplot(pca3)
+
+    # ndvi year one and ndvi year two seperated
+    pca4.1 <- prcomp(cbind(ndvi.may1.new, ndvi.summer1), scale=T)
+    pca4.2 <- prcomp(cbind(ndvi.may2.new, ndvi.summer2), scale=T)
+
+    summary(pca4.1)
+    summary(pca4.2)
+    # for both, pc1 is enough
+    cor(pca4.1$x[, 1], pca4.2$x[, 1])
+    # cannot use both, highly correlated
+})
+
+# PCA of NDVI may year 1 and 2
+db$ndvi.m1m2.pc1 <- pca1$x[, 1]
+db$ndvi.m1m2.pc2 <- pca1$x[, 2]
+
+# PCA of NDVI of summer year 1 and 2 and may year 1 and 2
+db$ndvi.m1m2s1s2.pc1 <- pca2$x[, 1]
+
+# PCA of NDVI of summer year and and 2
+db$ndvi.s1s2 <-pca3$x[, 1]
+
+# PCA of NDVI may1 and summer 1
+db$ndvi.m1s1 <- pca4.1$x[, 1]
+# PCA of NDVI may2 and summer 2
+db$ndvi.m2s2 <- pca4.2$x[, 2]
 
 
 
