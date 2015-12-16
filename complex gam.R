@@ -120,8 +120,8 @@ plot(fcham_c4, scale = F)
 system.time(
     fcham_c5 <-  gam(horn ~
             f.sex +
-            Jday +
             f.substrate +
+            s(Jday, bs="ts") +
             s(f.year, bs="re") +
             s(f.council_cod, bs="re") +
             s(weight, bs="ts") +
@@ -148,7 +148,7 @@ system.time(
 
 summary(fcham_c5)
 # 53.2%
-AIC(fcham_c5) # 21894.78
+AIC(fcham_c5) # 21895.17
 gam.check(fcham_c5)
 
 par(mfrow=c(2,2))
@@ -162,3 +162,19 @@ resids.spdf <- SpatialPointsDataFrame(coords=cbind(db$x.council, db$y.council), 
 bubble(resids.spdf, maxsize=10, main="non-spatial LM")
 
 #all good
+
+
+## is aspect a predictor? ############
+
+fcham_c5.1 <- update(fcham_c5, . ~ . + aspect)
+
+summary(fcham_c5.1)
+# nope
+
+# reduce df for ndvi.maxincr2 and pc1.ndvi
+fcham_c5.2 <- update(fcham_c5, . ~ . - s(ndvi.maxincr2, bs="ts") - s(pc1.ndvi, bs="ts") + s(ndvi.maxincr2, bs="ts", k=5) + s(pc1.ndvi, bs="ts", k=5))
+
+summary(fcham_c5.2)
+AIC(fcham_c5.2)
+
+plot(fcham_c5.2, scale=F)
