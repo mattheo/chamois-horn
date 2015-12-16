@@ -96,7 +96,7 @@ plot(F_gam1)
 hist(female_db$density)
 unique(female_db$density)#23 Werte
 ##########################################################################################################################
-#addind k in density
+#adding k in density
 M_gam2 <- gam(horn ~  s(x.council, y.council) + s(Jday) + (q_media) + I(q_media^2) + s(q_min,bs="ts") + s(weight, bs="ts") + f.substrate + s(density, bs="ts",k=5) + s(log.ndvi.slop1, bs="ts") + s(ndvi.maxincr1, bs="ts") + s(ndvi.summer1, bs="ts") + s(ndvi.summer2,bs="ts") + s(log.ndvi.slop2, bs="ts") + s(ndvi.maxincr2, bs="ts") + s(Perc.area.aperta ,bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=male_db, REML=FALSE)
 
 F_gam2 <- gam(horn ~  s(x.council, y.council) + s(Jday) + (q_media) + I(q_media^2) + s(q_min,bs="ts") + s(weight, bs="ts") + f.substrate + s(density, bs="ts",k=5) + s(log.ndvi.slop1, bs="ts") + s(ndvi.maxincr1, bs="ts") + s(ndvi.summer1, bs="ts") + s(ndvi.summer2,bs="ts") + s(log.ndvi.slop2, bs="ts") + s(ndvi.maxincr2, bs="ts") + s(Perc.area.aperta ,bs="ts") + s(f.year, bs="re") + s(f.council_cod,bs="re"), data=female_db, REML=FALSE)
@@ -486,75 +486,1521 @@ AIC(M_fcham_c5.1)#  11960.16 (same as c5)
 #AIC(M_gam1)#11975.4
 #AIC(F_gam1)#9922.889
 
-#rename for plotting routine and plot------------------------------------------
-MOD_F<-(F_fcham_c5.1)
-MOD_M<-(M_fcham_c5.1)
+M,main="male",select=22)
+names(db)
+#ndvi.summer1 insted of PC 
+F_fcham_c5.2 <- update(F_fcham_c5.1, . ~ . - s(pc1.ndvi, bs="ts") -
+                         s(pc2.ndvi, bs="ts") + s(ndvi.summer1, bs="ts"))
+M_fcham_c5.2 <- update(M_fcham_c5.1, . ~ . - s(pc1.ndvi, bs="ts") -
+                         s(pc2.ndvi, bs="ts") + s(ndvi.summer1, bs="ts"))
 
-par(mfrow=c(1,2))
+summary(F_fcham_c5.2)# 31.8% -> worse
+AIC(F_fcham_c5.2)# 9918.308 -> worse
+summary(M_fcham_c5.2)# 38.3%
+AIC(M_fcham_c5.2)# 11965.76 better than c5.1
 
-plot(MOD_F,main="female",select=1)
-plot(MOD_M,main="male",select=1)
+#q_media instead of ndvi.summer1 
+F_fcham_c5.3 <- update(F_fcham_c5.2, . ~ . - s(ndvi.summer1, bs="ts") +
+                         s(q_media, bs="ts"))
+M_fcham_c5.3 <- update(M_fcham_c5.2, . ~ . - s(ndvi.summer1, bs="ts") +
+                         s(q_media, bs="ts"))
+                           
+summary(F_fcham_c5.3)#32.1%  better than c5.2 but c5.1 better 32.3%
+AIC(F_fcham_c5.3)#9908.092 best so far  
+summary(M_fcham_c5.3)#38.3%
+AIC(M_fcham_c5.3)#11965.76
+    
+# New gam differing PCI´s ################################
+# Each model separately correlation ckecked###############
 
-plot(MOD_F,main="female",select=2)
-plot(MOD_M,main="male",select=2)
+# only may1+ may2
+#varclus
+library(Hmisc)
+attach(female_db)
+vFx1 <- as.formula(horn ~
 
-plot(MOD_F,main="female",select=3)
-plot(MOD_M,main="male",select=3)
+                       Jday +
+                       f.substrate +
+                       year +
+                       council_cod +
+                       weight +
+                       density +
+                       log.ndvi.slop1 +
+                       log.ndvi.slop2 +
+                       ndvi.maxincr1 +
+                       ndvi.maxincr2 +
+                       ndvi.m1m2.pc1 +
+                       ndvi.m1m2.pc2 + 
+                       snow_winter1 +
+                       snow_winter2 +
+                       r_newsummer1 +
+                       r_newsummer2 +
+                       twinter.mean1 +
+                       twinter.mean2 +
+                       tspring1.mean +
+                       tspring2.mean +
+                       tsummer1.mean +
+                       tsummer2.mean +
+                       tautumn.mean)
+par(mfrow=c(1,1))
+plot(varclus(vFx1, data=female_db))
+abline(h=0.5,col="red")
 
-plot(MOD_F,main="female",select=4)
-plot(MOD_M,main="male",select=4)
+attach(male_db)
+vMx1 <- as.formula(horn ~
+                     
+                     Jday +
+                     f.substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     ndvi.m1m2.pc1 +
+                     ndvi.m1m2.pc2 + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     tsummer1.mean +
+                     tsummer2.mean +
+                     tautumn.mean)
 
-plot(MOD_F,main="female",select=5)
-plot(MOD_M,main="male",select=5)
+plot(varclus(vMx1, data=male_db))
+abline(h=0.5,col="red")
 
-plot(MOD_F,main="female",select=6)
-plot(MOD_M,main="male",select=6)
+#t_summer1.mean und snow winter2 correlated in male and female
+#r_newsummer1 and tautum.mean correlated in male and female
 
-plot(MOD_F,main="female",select=7)
-plot(MOD_M,main="male",select=7)
 
-plot(MOD_F,main="female",select=8)
-plot(MOD_M,main="male",select=8)
+#model omitting snow-winter2 and r_newsummer1
 
-plot(MOD_F,main="female",select=9)
-plot(MOD_M,main="male",select=9)
+  M_x1.1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1m2.pc1, bs="ts") +
+                 s(ndvi.m1m2.pc2, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
 
-plot(MOD_F,main="female",select=10)
-plot(MOD_M,main="male",select=10)
+AIC(M_x1.1)# 11950.88
 
-plot(MOD_F,main="female",select=11)
-plot(MOD_M,main="male",select=11)
+F_x1.1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1m2.pc1, bs="ts") +
+                 s(ndvi.m1m2.pc2, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=female_db, REML=F)
 
-plot(MOD_F,main="female",select=12)
-plot(MOD_M,main="male",select=12)
 
-plot(MOD_F,main="female",select=13)
-plot(MOD_M,main="male",select=13)
 
-plot(MOD_F,main="female",select=14)
-plot(MOD_M,main="male",select=14)
+AIC(F_x1.1)# 9915.984
 
-plot(MOD_F,main="female",select=15)
-plot(MOD_M,main="male",select=15)
+#model omitting snow winter and tautumn.mean
 
-plot(MOD_F,main="female",select=16)
-plot(MOD_M,main="male",select=16)
+M_x1.2 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1m2.pc1, bs="ts") +
+                 s(ndvi.m1m2.pc2, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
 
-plot(MOD_F,main="female",select=17)
-plot(MOD_M,main="male",select=17)
+AIC(M_x1.2)# 11950.85
 
-plot(MOD_F,main="female",select=18)
-plot(MOD_M,main="male",select=18)
+F_x1.2 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1m2.pc1, bs="ts") +
+                 s(ndvi.m1m2.pc2, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+                 #s(tautumn.mean, k=3, bs="ts")
+               ,data=female_db, REML=F)
 
-plot(MOD_F,main="female",select=19)
-plot(MOD_M,main="male",select=19)
 
-plot(MOD_F,main="female",select=20)
-plot(MOD_M,main="male",select=20)
 
-plot(MOD_F,main="female",select=21)
-plot(MOD_M,main="male",select=21)
+AIC(F_x1.2)# 9915.661
 
-plot(MOD_F,main="female",select=22)
-plot(MOD_M,main="male",select=22)
+#omitting  tsummer1.mean and r_newsummer1
 
+M_x1.3 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1m2.pc1, bs="ts") +
+                 s(ndvi.m1m2.pc2, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
+
+AIC(M_x1.3)# 11952.13
+
+F_x1.3 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1m2.pc1, bs="ts") +
+                 s(ndvi.m1m2.pc2, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=female_db, REML=F)
+
+
+
+AIC(F_x1.3)# 9917.68
+
+#############
+#omitting  tsummer1.mean and tautumn.mean
+
+M_x1.4 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1m2.pc1, bs="ts") +
+                 s(ndvi.m1m2.pc2, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+                 #s(tautumn.mean, k=3, bs="ts")
+               ,data=male_db, REML=F)
+
+AIC(M_x1.4)#  11952.24
+
+F_x1.4 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1m2.pc1, bs="ts") +
+                 s(ndvi.m1m2.pc2, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+                 #s(tautumn.mean, k=3, bs="ts")
+               ,data=female_db, REML=F)
+
+
+
+AIC(F_x1.4)# 9912.556
+
+
+
+###  NDVI  only summer1 and summer2     ##########################################
+#varclus
+
+vMx2 <- as.formula(horn ~
+                     
+                     Jday +
+                     substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     ndvi.s1s2.pc1 + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     tsummer1.mean +
+                     tsummer2.mean +
+                     tautumn.mean)
+
+plot(varclus(vMx2, data=male_db))
+abline(h=0.5,col="red")
+
+vFx2 <- as.formula(horn ~
+                     
+                     Jday +
+                     substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     ndvi.s1s2.pc1 + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     tsummer1.mean +
+                     tsummer2.mean +
+                     tautumn.mean)
+
+plot(varclus(vFx2, data=female_db))
+abline(h=0.5,col="red")
+
+#same as M/F_x1:
+#t_summer1.mean und snow winter2 correlated in male and female
+#r_newsummer1 and tautum.mean correlated in male and female
+
+
+#model omitting snow-winter2 and r_newsummer1
+
+M_x2.1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.s1s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
+
+AIC(M_x2.1)#11965.54 
+
+F_x2.1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.s1s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=female_db, REML=F)
+
+
+
+AIC(F_x2.1)# 9918.739
+
+#model omitting snow winter and tautumn.mean
+
+M_x2.2 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.s1s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+                 #s(tautumn.mean, k=3, bs="ts")
+               ,data=male_db, REML=F)
+
+AIC(M_x2.2)# 11965.54
+
+F_x2.2 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.s1s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=female_db, REML=F)
+
+
+
+AIC(F_x2.2)# 9918.593
+
+#omitting  tsummer1.mean and r_newsummer1
+
+M_x2.3 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.s1s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
+
+AIC(M_x2.3)# 11965.75
+
+F_x2.3 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.s1s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=female_db, REML=F)
+
+
+
+AIC(F_x2.3)# 9916.444
+
+#############
+#omitting  tsummer1.mean and tautumn.mean
+
+M_x2.4 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.s1s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=male_db, REML=F)
+
+AIC(M_x2.4)# 11965.75
+
+F_x2.4 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.s1s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=female_db, REML=F)
+
+
+
+AIC(F_x2.4)# 9916.444
+#####################################################################################################################################
+#####################################################################################################################################
+# PCA  may1 and summer1
+#varclus
+
+vMx3 <- as.formula(horn ~
+                     
+                     Jday +
+                     substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     ndvi.m1s1.pc1 + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     tsummer1.mean +
+                     tsummer2.mean +
+                     tautumn.mean)
+
+plot(varclus(vMx3, data=male_db))
+abline(h=0.5,col="red")
+
+vFx3 <- as.formula(horn ~
+                     
+                     Jday +
+                     substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     ndvi.m1s1.pc1 + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     tsummer1.mean +
+                     tsummer2.mean +
+                     tautumn.mean)
+
+plot(varclus(vFx3, data=female_db))
+abline(h=0.5,col="red")
+
+#same as M/F_x1:
+#t_summer1.mean und snow winter2 correlated in male and female
+#r_newsummer1 and tautum.mean correlated in male and female
+
+
+#model omitting snow-winter2 and r_newsummer1
+
+M_x3.1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1s1.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
+
+AIC(M_x3.1)#  11966.55
+
+F_x3.1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1s1.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=female_db, REML=F)
+
+
+
+AIC(F_x3.1)# 9919.03
+
+#model omitting snow winter and tautumn.mean
+
+M_x3.2 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1s1.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=male_db, REML=F)
+
+AIC(M_x3.2)# 11966.55
+
+F_x3.2 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1s1.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=female_db, REML=F)
+
+
+
+AIC(F_x3.2)#9919.03 
+
+#omitting  tsummer1.mean and r_newsummer1
+
+M_x3.3 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1s1.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
+
+AIC(M_x3.3)#11965.3 
+
+F_x3.3 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1s1.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=female_db, REML=F)
+
+
+
+AIC(F_x3.3)# 9916.294
+
+#############
+#omitting  tsummer1.mean and tautumn.mean
+
+M_x3.4 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1s1.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=male_db, REML=F)
+
+AIC(M_x3.4)# 11965.3
+
+F_x3.4 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m1s1.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=female_db, REML=F)
+
+
+
+AIC(F_x3.4)#9916.348
+ 
+
+# no more gam problem (maxit= 600)
+
+#############################################
+##############################################
+
+
+# PCA  may2 and summer2
+#varclus
+
+vMx4 <- as.formula(horn ~
+                     
+                     Jday +
+                     substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     ndvi.m2s2.pc1 + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     tsummer1.mean +
+                     tsummer2.mean +
+                     tautumn.mean)
+
+plot(varclus(vMx4, data=male_db))
+abline(h=0.5,col="red")
+
+vFx4 <- as.formula(horn ~
+                     
+                     Jday +
+                     substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     ndvi.m2s2.pc1 + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     tsummer1.mean +
+                     tsummer2.mean +
+                     tautumn.mean)
+
+plot(varclus(vFx4, data=female_db))
+abline(h=0.5,col="red")
+
+#same as M/F_x1:
+#t_summer1.mean und snow winter2 correlated in male and female
+#r_newsummer1 and tautum.mean correlated in male and female
+
+
+#model omitting snow-winter2 and r_newsummer1
+
+M_x4.1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m2s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
+
+AIC(M_x4.1)#  11963.36
+
+F_x4.1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m2s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=female_db, REML=F)
+
+
+
+AIC(F_x4.1)#9918.633
+
+#model omitting snow winter and tautumn.mean
+
+M_x4.2 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m2s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=male_db, REML=F)
+
+AIC(M_x4.2)# 11962.41
+
+F_x4.2 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m2s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 #s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=female_db, REML=F)
+
+
+
+AIC(F_x4.2)#9918.758
+
+#omitting  tsummer1.mean and r_newsummer1
+
+M_x4.3 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m2s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=male_db, REML=F)
+
+AIC(M_x4.3)#11963.18 
+
+F_x4.3 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m2s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts") +
+                 s(tautumn.mean, k=3, bs="ts"),
+               data=female_db, REML=F)
+
+
+
+AIC(F_x4.3)# 9917.623
+
+#############
+#omitting  tsummer1.mean and tautumn.mean
+
+M_x4.4 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m2s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=male_db, REML=F)
+
+AIC(M_x4.4)# 11963.18
+
+F_x4.4 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(ndvi.m2s2.pc1, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+               #s(tautumn.mean, k=3, bs="ts")
+               ,data=female_db, REML=F)
+
+AIC(F_x4.4)#  9917.623
+
+#########################################################################################
+
+
+# only may1+ may2
+#varclus
+library(Hmisc)
+attach(female_db)
+vFx1 <- as.formula(horn ~
+                     
+                     Jday +
+                     f.substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     ndvi.m1m2.pc1 +
+                     ndvi.m1m2.pc2 + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     tsummer1.mean +
+                     tsummer2.mean +
+                     tautumn.mean)
+par(mfrow=c(1,1))
+plot(varclus(vFx1, data=female_db))
+abline(h=0.5,col="red")
+
+######################################
+#resume in female omitting  tsummer1.mean and tautumn.mean (.4) has mostly the best AIC, in male no trend
+#next models only using snow winter2 and r_newsummer1
+#################################################################
+#wintersnow and summerrain has more effect on female than on male !!!!!!!!!!!!!! see table
+#################################################################
+#next models only using snow winter2 and r_newsummer1
+
+#M/F x1 using m1m2 has lowest AIC in male and female
+
+# q _ media##############################################################################
+
+names (male_db)
+vMq <- as.formula(horn ~
+                     
+                     Jday +
+                     f.substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     q_media + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     #r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     #tsummer1.mean +
+                     tsummer2.mean 
+                     #tautumn.mean
+                  )
+
+plot(varclus(vMq, data=male_db))
+abline(h=0.5,col="red")
+
+vFq <- as.formula(horn ~
+                    
+                    Jday +
+                    f.substrate +
+                    year +
+                    council_cod +
+                    weight +
+                    density +
+                    log.ndvi.slop1 +
+                    log.ndvi.slop2 +
+                    ndvi.maxincr1 +
+                    ndvi.maxincr2 +
+                    q_media + 
+                    snow_winter1 +
+                    snow_winter2 +
+                    #r_newsummer1 +
+                    r_newsummer2 +
+                    twinter.mean1 +
+                    twinter.mean2 +
+                    tspring1.mean +
+                    tspring2.mean +
+                    #tsummer1.mean +
+                    tsummer2.mean 
+                  #tautumn.mean
+                    )
+
+plot(varclus(vFq, data=female_db))
+abline(h=0.5,col="red")
+
+#now all good
+
+
+Mq1 <-  gam(horn ~
+                 Jday +
+                 f.substrate +
+                 s(f.year, bs="re") +
+                 s(f.council_cod, bs="re") +
+                 s(weight, bs="ts") +
+                 s(density, bs="ts") +
+                 s(log.ndvi.slop1, bs="ts") +
+                 s(log.ndvi.slop2, bs="ts") +
+                 s(ndvi.maxincr1, bs="ts") +
+                 s(ndvi.maxincr2, bs="ts") +
+                 s(q_media, bs="ts") +
+                 s(snow_winter1, k=3, bs="ts") +
+                 s(snow_winter2, k=3, bs="ts") +
+                 #s(r_newsummer1, k=3, bs="ts") +
+                 s(r_newsummer2, k=3, bs="ts") +
+                 s(twinter.mean1, k=3, bs="ts") +
+                 s(twinter.mean2, k=3, bs="ts") +
+                 s(tspring1.mean, k=3, bs="ts") +
+                 s(tspring2.mean, k=3, bs="ts") +
+                 #s(tsummer1.mean, k=3, bs="ts") +
+                 s(tsummer2.mean, k=3, bs="ts")
+                 #s(tautumn.mean, k=3, bs="ts")
+               ,data=male_db, REML=F)
+            
+AIC(Mq1)#11966.58
+
+Fq1 <-  gam(horn ~
+              Jday +
+              f.substrate +
+              s(f.year, bs="re") +
+              s(f.council_cod, bs="re") +
+              s(weight, bs="ts") +
+              s(density, bs="ts") +
+              s(log.ndvi.slop1, bs="ts") +
+              s(log.ndvi.slop2, bs="ts") +
+              s(ndvi.maxincr1, bs="ts") +
+              s(ndvi.maxincr2, bs="ts") +
+              s(q_media, bs="ts") +
+              s(snow_winter1, k=3, bs="ts") +
+              s(snow_winter2, k=3, bs="ts") +
+              #s(r_newsummer1, k=3, bs="ts") +
+              s(r_newsummer2, k=3, bs="ts") +
+              s(twinter.mean1, k=3, bs="ts") +
+              s(twinter.mean2, k=3, bs="ts") +
+              s(tspring1.mean, k=3, bs="ts") +
+              s(tspring2.mean, k=3, bs="ts") +
+              #s(tsummer1.mean, k=3, bs="ts") +
+              s(tsummer2.mean, k=3, bs="ts")
+              #s(tautumn.mean, k=3, bs="ts")
+            ,data=female_db, REML=F)
+
+AIC(Fq1)# 9913.439
+
+
+#Perc area aperta  #########################################################################################################
+
+
+names (male_db)
+vMaa <- as.formula(horn ~
+                    
+                    Jday +
+                    f.substrate +
+                    year +
+                    council_cod +
+                    weight +
+                    density +
+                    log.ndvi.slop1 +
+                    log.ndvi.slop2 +
+                    ndvi.maxincr1 +
+                    ndvi.maxincr2 +
+                    Perc.area.aperta + 
+                    snow_winter1 +
+                    snow_winter2 +
+                    #r_newsummer1 +
+                    r_newsummer2 +
+                    twinter.mean1 +
+                    twinter.mean2 +
+                    tspring1.mean +
+                    tspring2.mean +
+                    #tsummer1.mean +
+                    tsummer2.mean 
+                   #tautumn.mean
+)
+
+plot(varclus(vMaa, data=male_db))
+abline(h=0.5,col="red")
+
+vFaa <- as.formula(horn ~
+                     
+                     Jday +
+                     f.substrate +
+                     year +
+                     council_cod +
+                     weight +
+                     density +
+                     log.ndvi.slop1 +
+                     log.ndvi.slop2 +
+                     ndvi.maxincr1 +
+                     ndvi.maxincr2 +
+                     Perc.area.aperta + 
+                     snow_winter1 +
+                     snow_winter2 +
+                     #r_newsummer1 +
+                     r_newsummer2 +
+                     twinter.mean1 +
+                     twinter.mean2 +
+                     tspring1.mean +
+                     tspring2.mean +
+                     #tsummer1.mean +
+                     tsummer2.mean 
+                   #tautumn.mean
+)
+
+plot(varclus(vFaa, data=female_db))
+abline(h=0.5,col="red")
+#allgood
+
+# all good
+
+
+Maa1 <-  gam(horn ~
+              Jday +
+              f.substrate +
+              s(f.year, bs="re") +
+              s(f.council_cod, bs="re") +
+              s(weight, bs="ts") +
+              s(density, bs="ts") +
+              s(log.ndvi.slop1, bs="ts") +
+              s(log.ndvi.slop2, bs="ts") +
+              s(ndvi.maxincr1, bs="ts") +
+              s(ndvi.maxincr2, bs="ts") +
+              s(Perc.area.aperta, bs="ts") +
+              s(snow_winter1, k=3, bs="ts") +
+              s(snow_winter2, k=3, bs="ts") +
+              #s(r_newsummer1, k=3, bs="ts") +
+              s(r_newsummer2, k=3, bs="ts") +
+              s(twinter.mean1, k=3, bs="ts") +
+              s(twinter.mean2, k=3, bs="ts") +
+              s(tspring1.mean, k=3, bs="ts") +
+              s(tspring2.mean, k=3, bs="ts") +
+              #s(tsummer1.mean, k=3, bs="ts") +
+              s(tsummer2.mean, k=3, bs="ts")
+            #s(tautumn.mean, k=3, bs="ts")
+            ,data=male_db, REML=F)
+
+AIC(Maa1)#11965.76
+
+Faa1 <-  gam(horn ~
+              Jday +
+              f.substrate +
+              s(f.year, bs="re") +
+              s(f.council_cod, bs="re") +
+              s(weight, bs="ts") +
+              s(density, bs="ts") +
+              s(log.ndvi.slop1, bs="ts") +
+              s(log.ndvi.slop2, bs="ts") +
+              s(ndvi.maxincr1, bs="ts") +
+              s(ndvi.maxincr2, bs="ts") +
+              s(Perc.area.aperta, bs="ts") +
+              s(snow_winter1, k=3, bs="ts") +
+              s(snow_winter2, k=3, bs="ts") +
+              #s(r_newsummer1, k=3, bs="ts") +
+              s(r_newsummer2, k=3, bs="ts") +
+              s(twinter.mean1, k=3, bs="ts") +
+              s(twinter.mean2, k=3, bs="ts") +
+              s(tspring1.mean, k=3, bs="ts") +
+              s(tspring2.mean, k=3, bs="ts") +
+              #s(tsummer1.mean, k=3, bs="ts") +
+              s(tsummer2.mean, k=3, bs="ts")
+              #s(tautumn.mean, k=3, bs="ts")
+            ,data=female_db, REML=F)
+
+AIC(Faa1)# 9916.232
