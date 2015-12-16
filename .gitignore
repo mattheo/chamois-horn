@@ -62,3 +62,12 @@ Network Trash Folder
 Temporary Items
 .apdisk
 .Rproj.user
+
+
+# ======================
+# Include these files
+# ======================
+
+!Model_evaluation.xlsx
+!count.csv
+!models.xlsx
