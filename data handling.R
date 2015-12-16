@@ -213,7 +213,7 @@ db$ndvi.s1s2.pc1 <-pca3$x[, 1]
 # PCA of NDVI may1 and summer 1
 db$ndvi.m1s1.pc1 <- pca4.1$x[, 1]
 # PCA of NDVI may2 and summer 2
-db$ndvi.m2s2.pc1 <- pca4.2$x[, 2]
+db$ndvi.m2s2.pc1 <- pca4.2$x[, 1]
 
 
 
