@@ -439,3 +439,33 @@ hist(log.ndvi.slop2)
 # maybe better?
 
 
+## PCA ###################
+
+# may ndvis
+pca1 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T)
+summary(pca1)
+# two PCS explain enough variance
+round(pca1$rotation, 2)
+biplot(pca1)
+
+# all ndvis
+pca2 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T)
+summary(pca2)
+# two are enough
+biplot(pca2)
+
+# summer ndvis
+pca3 <- prcomp(cbind(ndvi.summer1, ndvi.summer2), scale=T)
+summary(pca3)
+# pc1 is enough
+biplot(pca3)
+
+# ndvi year one and ndvi year two seperated
+pca4.1 <- prcomp(cbind(ndvi.may1.new, ndvi.summer1), scale=T)
+pca4.2 <- prcomp(cbind(ndvi.may2.new, ndvi.summer2), scale=T)
+
+summary(pca4.1)
+summary(pca4.2)
+# for both, pc1 is enough
+cor(pca4.1$x[, 1], pca4.2$x[, 1])
+# cannot use both, highly correlated
