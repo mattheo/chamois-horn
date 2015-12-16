@@ -1,13 +1,16 @@
 library(mgcv)
 library(sp)
 library(gstat)
+# library(Hmisc)
+library(corrplot)
 load("db.RData")
 
 ## complex gamms: how far can we go?
 
 # first model, all predictors ################
 system.time(
-    fcham_c1 <-  gam(horn ~
+    fcham_c1 <-  gam(
+        horn ~
             f.sex +
             s(weight, bs="ts") +
             s(Jday, bs="ts") +
@@ -117,21 +120,23 @@ plot(fcham_c4, scale = F)
 # without x and y coordinates
 # no aspect
 
+
 system.time(
-    fcham_c5 <-  gam(horn ~
+    fcham_c5 <-  gam(
+        horn ~
             f.sex +
             f.substrate +
-            s(Jday, bs="ts") +
             s(f.year, bs="re") +
             s(f.council_cod, bs="re") +
+            s(Jday, bs="ts") +
             s(weight, bs="ts") +
             s(density, bs="ts") +
             s(log.ndvi.slop1, bs="ts") +
             s(log.ndvi.slop2, bs="ts") +
             s(ndvi.maxincr1, bs="ts") +
             s(ndvi.maxincr2, bs="ts") +
-            s(pc1.ndvi, bs="ts") +
-            s(pc2.ndvi, bs="ts") +
+            s(ndvi.m1m2.pc1, bs="ts") +
+            s(ndvi.m1m2.pc2, bs="ts") +
             s(snow_winter1, k=3, bs="ts") +
             s(snow_winter2, k=3, bs="ts") +
             s(r_newsummer1, k=3, bs="ts") +
@@ -148,7 +153,7 @@ system.time(
 
 summary(fcham_c5)
 # 53.2%
-AIC(fcham_c5) # 21895.17
+AIC(fcham_c5) # 21894.78
 gam.check(fcham_c5)
 
 par(mfrow=c(2,2))
@@ -161,7 +166,22 @@ resids.spdf <- SpatialPointsDataFrame(coords=cbind(db$x.council, db$y.council), 
 
 bubble(resids.spdf, maxsize=10, main="non-spatial LM")
 
-#all good
+cor_m <- with(db, cor(cbind(f.sex, f.substrate, Jday, weight, density, log.ndvi.slop1, log.ndvi.slop2, ndvi.maxincr1, ndvi.maxincr2, ndvi.m1m2.pc1, ndvi.m1m2.pc2, snow_winter1, snow_winter2, r_newsummer1, r_newsummer2, twinter.mean1, twinter.mean2, tspring1.mean, tspring2.mean, tsummer1.mean, tsummer2.mean, tautumn.mean)))
+
+cor_m[(cor_m > 0.6)]
+
+# check for collinearity
+corrplot(cor_m, type="lower", diag=F)
+
+f_c5 <- as.formula(horn ~ sex + substrate + Jday + weight + density + log.ndvi.slop1 + log.ndvi.slop2 + ndvi.maxincr1 + ndvi.maxincr2 + ndvi.m1m2.pc1 + ndvi.m1m2.pc2 + snow_winter1 + snow_winter2 + r_newsummer1 + r_newsummer2 + twinter.mean1 + twinter.mean2 + tspring1.mean + tspring2.mean + tsummer1.mean + tsummer2.mean + tautumn.mean)
+
+
+par(mar=c(1, 5, 1, 2))
+plot(varclus(f_c5, data=db, sim="pearson"), lwd=1.2)
+abline(h=0.5, col="red")
+
+# still collinearity in log ndvi slop2 and tsummer mean
+
 
 
 ## is aspect a predictor? ############
@@ -169,12 +189,14 @@ bubble(resids.spdf, maxsize=10, main="non-spatial LM")
 fcham_c5.1 <- update(fcham_c5, . ~ . + aspect)
 
 summary(fcham_c5.1)
-# nope
+AIC(fcham_c5.1) # 21897.12
+# well, AIC is better, but some things changed strongly
 
 # reduce df for ndvi.maxincr2 and pc1.ndvi
 fcham_c5.2 <- update(fcham_c5, . ~ . - s(ndvi.maxincr2, bs="ts") - s(pc1.ndvi, bs="ts") + s(ndvi.maxincr2, bs="ts", k=5) + s(pc1.ndvi, bs="ts", k=5))
 
 summary(fcham_c5.2)
-AIC(fcham_c5.2)
+# Deviance explained = 53.1%
+AIC(fcham_c5.2) # 21912.08
 
 plot(fcham_c5.2, scale=F)
