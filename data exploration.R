@@ -1,7 +1,8 @@
 library(mgcv)
 library(psych)
+library(VIF)
 
-
+source("collinearity check.R")
 
 load("db.RData")
 attach(db)
@@ -340,132 +341,9 @@ with(db, tapply(density, list(year, area_cod), unique))
 # we have an animal density per administrative area per year  which is then either confirmed in the next year or changed.
 
 
-## Collinearity in predictors ##########################
-
-# collinearity in elevation data
-pairs.panels(db[c("q_media", "q_min", "q_max")])
-q_range <- db$q_max - db$q_min
-cor.test(db$q_media, q_range, method = "spearman")
-plot(db$q_media, q_range) # maybe ok
-
-# calculate elevation relative to mean
-q_relmin <- q_min - q_media
-q_relmax <- q_max - q_media
-
-pairs.panels(data.frame(q_relmin, q_media, q_relmax))
-# we still have to decide what we want to use for the model
 
 
-# collinearity of NAO and others
-cor(db$nao_w, db$twinter.mean2)
-cor(db$nao_w, db$twinter.min2)
-cor(db$nao_w, db$twinter.max2)
-# nao is correlated with minimum winter temps
+# Variance Inflation VIF ###############
+preds <- c("Jday", "x.council", "y.council", "q_media", "q_max", "q_min","weight", "substrate", "density", "nao_w", "nao_a1", "nao_a2", "nao_d", "nao_j", "nao_f", "nao_m", "ndvi.maxincr1", "ndvi.summer1", "ndvi.slop2", "ndvi.maxincr2", "ndvi.summer2", "Perc.area.aperta", "ndvi.may1.new", "ndvi.may2.new", "snow_winter1", "Snow_cover_winter1", "r_spring1", "r_newsummer1", "r_autumn", "snow_winter2", "Snow_cover_winter2", "r_spring2", "r_newsummer2", "twinter.min1", "twinter.max1", "twinter.mean1", "tspring1.min", "tspring1.max", "tspring1.mean", "tsummer1.min", "tsummer1.max", "tsummer1.mean", "tautumn.min", "tautumn.max", "tautumn.mean", "twinter.min2", "twinter.max2", "twinter.mean2", "tspring2.min", "tspring2.max", "tspring2.mean", "tsummer2.min", "tsummer2.max", "tsummer2.mean", "category", "aspect", "f.sex", "f.substrate", "f.year", "f.council_cod", "log.ndvi.slop1", "log.ndvi.slop2", "q_range", "ndvi.m1m2.pc1", "ndvi.m1m2.pc2", "ndvi.m1m2s1s2.pc1", "ndvi.s1s2.pc1", "ndvi.m1s1.pc1", "ndvi.m2s2.pc1")
 
-cor.test(db$nao_w, db$snow_winter2)
-cor.test(db$nao_d, db$snow_winter2)
-# and also with snow depth
-
-# NAO is not a useful predictor since we have higher resolution on the highly correlated weather data
-
-# precipitation data
-prec1 <- cbind(snow_winter1, r_apr_mag_1, r_giu_lug_1, r_ago_set_1, r_spring1, r_newsummer1, r_autumn)
-prec2 <- cbind(snow_winter2, r_apr_mag_2, r_giu_lug_2, r_ago_set_2, r_spring2, r_newsummer2)
-
-pairs.panels(prec1, scale=T, method="spearman", main="precipitation 1")
-pairs.panels(prec2, scale=T, method="spearman", main="precipitation 2")
-
-# first winter
-winter1 <- cbind(snow_winter1, Snow_cover_winter1, twinter.min1, twinter.mean1, twinter.max1)
-pairs.panels(winter1, scale=T, main = "Winter1", method = "spearman")
-# Snow_cover_winter1  --> out
-
-# second winter
-winter2 <- cbind(snow_winter2, Snow_cover_winter2, twinter.min2, twinter.mean2, twinter.max2)
-pairs.panels(winter2, scale=T, main = "Winter2", method = "spearman")
-# Snow_cover_winter2  --> out
-
-# first spring
-spring1 <- cbind(r_spring1, tspring1.min, tspring1.mean, tspring1.max)
-pairs.panels(spring1, scale=T, main = "Spring1", method = "spearman")
-# allright!
-
-# secound spring
-spring2 <- cbind(r_spring2, tspring2.min, tspring2.mean, tspring2.max)
-pairs.panels(spring2, scale=T, main = "Spring2", method = "spearman")
-# allright!
-
-# first summer
-summer1 <- cbind(r_newsummer1, tsummer1.min, tsummer1.mean, tsummer1.max)
-pairs.panels(summer1, scale=T, main = "summer1", method = "spearman")
-pairs.panels(summer1, scale=T, main = "summer1")
-# highly correlated overall
-
-# secound summer
-summer2 <- cbind(r_newsummer2, tsummer2.min, tsummer2.mean, tsummer2.max)
-pairs.panels(summer2, scale=T, main = "summer2", method = "spearman")
-pairs.panels(summer2, scale=T, main = "summer2")
-# ok
-
-# autumn
-autumn <- cbind(r_autumn, tautumn.min, tautumn.mean, tautumn.max)
-pairs.panels(autumn, scale=T, main = "Autumn", method="spearman")
-pairs.panels(autumn, scale=T, main = "Autumn")
-# highly correlated overall
-
-
-# collnearity of NDVI
-ndvi1 <- cbind(ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
-ndvi2 <- cbind(ndvi.maxincr2, ndvi.may2.new, ndvi.slop2, ndvi.summer2)
-
-pairs.panels(ndvi1, scale=T, main = "NDVI1", method = "spearman")
-# as expected, NDVI in may and summer are highly correlated. Pick One.
-# however, ndvi.slop is heavily skewed towards 0
-summary(ndvi.slop1)
-sum(ndvi.slop1 == 0) # only 1!
-sum(ndvi.slop1 < 0.1) # but more then 2000 are smaller than 0.1
-sum(ndvi.slop1 > 0.1)
-# log transform?
-log.ndvi.slop1 <- log(ndvi.slop1 + 0.5*0.001)
-hist(log.ndvi.slop1)
-summary(log.ndvi.slop1)
-# maybe better, ask simone!
-
-pairs.panels(ndvi2, scale=T, main = "NDVI2", method = "spearman")
-# same for the second year: may and summer highly correlated
-summary(ndvi.slop2) # no zeros
-log.ndvi.slop2 <- log(ndvi.slop2)
-hist(log.ndvi.slop2)
-# maybe better?
-
-
-## PCA ###################
-
-# may ndvis
-pca1 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T)
-summary(pca1)
-# two PCS explain enough variance
-round(pca1$rotation, 2)
-biplot(pca1)
-
-# all ndvis
-pca2 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T)
-summary(pca2)
-# two are enough
-biplot(pca2)
-
-# summer ndvis
-pca3 <- prcomp(cbind(ndvi.summer1, ndvi.summer2), scale=T)
-summary(pca3)
-# pc1 is enough
-biplot(pca3)
-
-# ndvi year one and ndvi year two seperated
-pca4.1 <- prcomp(cbind(ndvi.may1.new, ndvi.summer1), scale=T)
-pca4.2 <- prcomp(cbind(ndvi.may2.new, ndvi.summer2), scale=T)
-
-summary(pca4.1)
-summary(pca4.2)
-# for both, pc1 is enough
-cor(pca4.1$x[, 1], pca4.2$x[, 1])
-# cannot use both, highly correlated
+vif.sel <- with(db, vif(horn, db[, preds]))
