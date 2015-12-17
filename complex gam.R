@@ -1,7 +1,7 @@
 library(mgcv)
 library(sp)
 library(gstat)
-# library(Hmisc)
+library(Hmisc)
 library(corrplot)
 load("db.RData")
 
@@ -166,14 +166,10 @@ resids.spdf <- SpatialPointsDataFrame(coords=cbind(db$x.council, db$y.council), 
 
 bubble(resids.spdf, maxsize=10, main="non-spatial LM")
 
-cor_m <- with(db, cor(cbind(f.sex, f.substrate, Jday, weight, density, log.ndvi.slop1, log.ndvi.slop2, ndvi.maxincr1, ndvi.maxincr2, ndvi.m1m2.pc1, ndvi.m1m2.pc2, snow_winter1, snow_winter2, r_newsummer1, r_newsummer2, twinter.mean1, twinter.mean2, tspring1.mean, tspring2.mean, tsummer1.mean, tsummer2.mean, tautumn.mean)))
-
-cor_m[(cor_m > 0.6)]
 
 # check for collinearity
-corrplot(cor_m, type="lower", diag=F)
 
-f_c5 <- as.formula(horn ~ sex + substrate + Jday + weight + density + log.ndvi.slop1 + log.ndvi.slop2 + ndvi.maxincr1 + ndvi.maxincr2 + ndvi.m1m2.pc1 + ndvi.m1m2.pc2 + snow_winter1 + snow_winter2 + r_newsummer1 + r_newsummer2 + twinter.mean1 + twinter.mean2 + tspring1.mean + tspring2.mean + tsummer1.mean + tsummer2.mean + tautumn.mean)
+f_c5 <- as.formula(horn ~ year + council_cod + sex + substrate + Jday + weight + density + log.ndvi.slop1 + log.ndvi.slop2 + ndvi.maxincr1 + ndvi.maxincr2 + ndvi.m1m2.pc1 + ndvi.m1m2.pc2 + snow_winter1 + snow_winter2 + r_newsummer1 + r_newsummer2 + twinter.mean1 + twinter.mean2 + tspring1.mean + tspring2.mean + tsummer1.mean + tsummer2.mean + tautumn.mean)
 
 
 par(mar=c(1, 5, 1, 2))
@@ -181,7 +177,69 @@ plot(varclus(f_c5, data=db, sim="pearson"), lwd=1.2)
 abline(h=0.5, col="red")
 
 # still collinearity in log ndvi slop2 and tsummer mean
+# also between year and r_newsummer; this might be why year as random effect gets shrinked to zero
 
+
+
+
+f_c6 <- update(f_c5, . ~ .  -r_newsummer1)
+par(mar=c(1, 5, 1, 2))
+plot(varclus(f_c6, data=db, sim="pearson"), lwd=1.2)
+abline(h=0.5, col="red")
+# better. now only log ndvi slope and tsummer1 mean are collinear
+
+# kick out log ndvi slope 2 and r_newsummer1 #################
+# check collinearity
+f_c6.1 <- update(f_c6, . ~ .  - log.ndvi.slop2)
+par(mar=c(1, 5, 1, 2))
+plot(varclus(f_c6.1, data=db, sim="pearson"), lwd=1.2)
+abline(h=0.5, col="red")
+# no collinearity!
+
+
+system.time(
+     fcham_c6.1 <-  gam(
+        horn ~
+            f.sex +
+            f.substrate +
+            s(f.year, bs="re") +
+            s(f.council_cod, bs="re") +
+            s(Jday, bs="ts") +
+            s(weight, bs="ts") +
+            s(density, bs="ts") +
+            s(log.ndvi.slop1, bs="ts") +
+            s(ndvi.maxincr1, bs="ts") +
+            s(ndvi.maxincr2, bs="ts") +
+            s(ndvi.m1m2.pc1, bs="ts") +
+            s(ndvi.m1m2.pc2, bs="ts") +
+            s(snow_winter1, k=3, bs="ts") +
+            s(snow_winter2, k=3, bs="ts") +
+            s(r_newsummer2, k=3, bs="ts") +
+            s(twinter.mean1, k=3, bs="ts") +
+            s(twinter.mean2, k=3, bs="ts") +
+            s(tspring1.mean, k=3, bs="ts") +
+            s(tspring2.mean, k=3, bs="ts") +
+            s(tsummer1.mean, k=3, bs="ts") +
+            s(tsummer2.mean, k=3, bs="ts") +
+            s(tautumn.mean, k=3, bs="ts"),
+        data=db, REML=F)
+)
+
+summary(fcham_c6.1)
+AIC(fcham_c6.1) # 21895.4
+
+
+# kick out temp summer1 mean ###################
+# check collinearity
+f_c5.2 <- update(f_c5, . ~ .  -tsummer1.mean)
+par(mar=c(1, 5, 1, 2))
+plot(varclus(f_c5.2, data=db, sim="pearson"), lwd=1.2)
+abline(h=0.5, col="red")
+# no collinearity!
+
+fcham_c5.2 <- update(fcham_c5, . ~ . - s(tsummer1.mean, k=3, bs="ts"))
+summary(fcham_c5.2)
+AIC(fcham_c5.2) # 21893.39
 
 
 ## is aspect a predictor? ############
