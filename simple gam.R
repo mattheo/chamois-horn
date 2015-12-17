@@ -17,6 +17,28 @@ vis.gam(fcham_s1, view=c("x.council", "y.council"))
 gam.check(fcham_s1) # fine
 AIC(fcham_s1) # 21943.3
 
+# interaction sex and Jday
+fcham_s1.1 <-  gam(horn ~ f.sex + s(weight, bs="ts") + s(Jday, bs="ts", by=f.sex) + s(x.council, y.council) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+
+summary(fcham_s1.1) # Deviance explained = 51.8%
+# q_media is not significant, has no effect
+# Jday is linear and can be moved to the linear part
+plot(fcham_s1.1, page=1)
+vis.gam(fcham_s1.1, view=c("x.council", "y.council"), plot="contour")
+# almost linear, explains not much
+gam.check(fcham_s1.1) # fine
+AIC(fcham_s1.1) # 21944.56
+
+fcham_s1.2 <-  gam(horn ~ f.sex + s(weight, bs="ts") + s(Jday, bs="ts", by=f.sex) + s(q_media, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_s1.2)
+plot(fcham_s1.2, page=1)
+# almost linear, explains not much
+gam.check(fcham_s1.1) # fine
+AIC(fcham_s1.1) # 21944.56
+
+
+
+
 # Jday in the linear part, x.y council removed, substrate and added  ###############
 #check for collinearity
 
