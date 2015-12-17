@@ -1719,6 +1719,7 @@ F_x4.4 <-  gam(horn ~
                ,data=female_db, REML=F)
 
 AIC(F_x4.4)#  9917.623
+summary(F_x4.4)
 
 #########################################################################################
 
@@ -1883,6 +1884,7 @@ Fq1 <-  gam(horn ~
             ,data=female_db, REML=F)
 
 AIC(Fq1)# 9913.439
+summary(Fq1)
 
 
 #Perc area aperta  #########################################################################################################
@@ -1977,6 +1979,7 @@ Maa1 <-  gam(horn ~
             ,data=male_db, REML=F)
 
 AIC(Maa1)#11965.76
+summary(Maa1)
 
 Faa1 <-  gam(horn ~
               Jday +
