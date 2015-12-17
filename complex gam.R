@@ -214,6 +214,7 @@ system.time(
             s(ndvi.m1m2.pc2, bs="ts") +
             s(snow_winter1, k=3, bs="ts") +
             s(snow_winter2, k=3, bs="ts") +
+            s(r_newsummer1, k=3, bs="ts") +
             s(r_newsummer2, k=3, bs="ts") +
             s(twinter.mean1, k=3, bs="ts") +
             s(twinter.mean2, k=3, bs="ts") +
@@ -226,8 +227,10 @@ system.time(
 )
 
 summary(fcham_c6.1)
-AIC(fcham_c6.1) # 21895.4
+AIC(fcham_c6.1) # 21828.76
 
+# check for temporal autocorrelation
+acf(residuals(fcham_c6.1))
 
 # kick out temp summer1 mean ###################
 # check collinearity

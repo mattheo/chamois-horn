@@ -217,7 +217,7 @@ db$ndvi.m2s2.pc1 <- pca4.2$x[, 1]
 
 # drop weight > 25kg
 # yearlings are NOT that heavy!
-subset(db, weight > 25 & f.sex == "male")
+nrow(subset(db, weight > 25))
 db <- subset(db, weight < 25)
 
 
