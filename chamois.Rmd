@@ -9,6 +9,11 @@ output:
     toc: yes
 ---
 
+```{r echo=F}
+require(knitr)
+```
+
+
 # About the data
 We have received a data set of 2679 observations from hunted animals of the species *Rupicapra rupicapra* (Chamois) in the Eastern Italian Alps in the region of Alto Adige (South Tirol). The shot animals are yearlings culled during the hunting season of their second year. The hunting season is from September to December. The data measured from each individual is 
 
@@ -38,10 +43,9 @@ We therefore set out to work on merging the two data sets and filling the holes 
 When we are trying to bring the two data set together, we found that the relationships between the weather data of different areas are unsteady, which actually should have some equality because of the sharing of same weather stations. The result turn out to be that since not all the stations are at work in the same time, some councils have to even borrow weather data from other area, when the own weather station next to it is closed. This is a serious problem, we can now no more maintain that the weather data for each council is true.
 To deal with this problem, we try to find out one council sample, which on one side has insisted with the weather data from one station continuously from 2005 to 2012, and on the other side can be representative of the whole research area considering its elevation(finally council 39). Then we generalizing its weather data to the whole research area for each year. At last we would introduce an interaction between elevation and aspect, which should reflect the true variance of weather in different councils.
 
-```{r loading data, echo=FALSE, include=FALSE}
-# load libraries
-library(mgcv)
+## Loading the data sets into R
 
+```{r loading data}
 # helper function: inverse of intersect
 outersect <- function(x, y) {
     sort(c(setdiff(x, y),
@@ -52,6 +56,7 @@ outersect <- function(x, y) {
 db_chamois1 <- read.csv("chamois1.csv", sep=";")
 db_chamois2 <- read.csv("chamois2.csv", sep=";")
 
+
 #rename columns so merging can work its magic
 db_chamois1$Snow_cover_winter2 <- db_chamois1$Snow_cover_winter
 db_chamois1$snow_winter2 <- db_chamois1$snow_winter
@@ -59,7 +64,7 @@ db_chamois1$twinter.max2 <- db_chamois1$twinter.max
 db_chamois1$twinter.mean2 <- db_chamois1$twinter.mean
 db_chamois1$twinter.min2 <- db_chamois1$twinter.min
 
-# delete the old cloumns
+# delete the old columns
 db_chamois1$Snow_cover_winter <- NULL
 db_chamois1$snow_winter <- NULL
 db_chamois1$twinter.max <- NULL
@@ -70,7 +75,19 @@ db_chamois1$twinter.min <- NULL
 db_chamois2$X <- NULL
 db_chamois2$X.1 <- NULL
 db_chamois2$X.2 <- NULL
+```
 
+After loading the data we face the problem that the second data set has less observations than the first. 
+
+```{r number of observations}
+# number of observations in each data set
+nrow(db_chamois1); nrow(db_chamois2)
+```
+
+There is evironmental data, especially weather data in the second data set that we want to use for all observations of the first.
+
+First we merge the two sets, keeping all observations.
+```{r merging data}
 # merge the databases
 db_merge <- merge(db_chamois1, db_chamois2, all.x=T)
 
@@ -79,7 +96,7 @@ drops <- c(
     "exc.date2", # excel numeric date
     "Julia.date", # year + Julian day
     "date", # year # Julian day + random number
-    "x", # coordniates + small random step for spatial autocorrelation
+    "x", # coordniates + small random step for spatial analysis
     "y", # same
     "x2", # same
     "y2", # same
@@ -93,18 +110,18 @@ drops <- c(
     "index" # Indice of above ratio
 )
 db_merge <- db_merge[, !names(db_merge) %in% drops]
-
+names(db_merge)
 ```
+Here are the columns present in the new merged data.
 
-## About the second Dataset
-
-Describing the new variables
-```{r new columns, echo=FALSE}
+```{r outersect table}
 # what columns are new in the new data set?
 outersect(colnames(db_chamois1), colnames(db_chamois2))
 ```
 
-```{r fixing weather, echo=FALSE}
+These 15 columns are not present in the first first set. We need to take values from the second set and include them in the first set. Here the problem is that the use of weather stations i inconsistent, as well as some of the stations are not present in all councils and some councils use weather data from a station which is unsuitable to represent the whole study area.
+
+```{r fixing weather}
 # consistency of kills in councils: not every year a chamois was shot in every council
 with(db_merge, tapply(horn, list(council_cod, year), length))
 # we need the consistent council to select which weather data to use
