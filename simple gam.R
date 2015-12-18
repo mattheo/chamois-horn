@@ -3,6 +3,8 @@ library(sp)
 library(Hmisc)
 
 load("db.RData")
+db_male <-subset(db, f.sex == "male")
+db_female <-subset(db, f.sex == "female")
 
 
 # tiny models with single predictors ###############
@@ -78,16 +80,12 @@ AIC(fcham_t4) # 21860.34 best so far
 
 plot(fcham_t4, page=1, all=T)
 
-weightnew <- seq(from=min(db$weight), to=max(db$weight), len=100)
-malenew <- rep("male", times=100)
-femalenew <- rep("female", times=100)
-yearnew <- rep(median(year), t=100)
-Jdaynew <- rep(mean(Jday), t=100)
-council_codnew <- rep(median(council_cod), t=100)
+f_weight <- seq(from=min(db_female$weight), to=max(db_female$weight), len=100)
+m_weight <- seq(from=min(db_male$weight), to=max(db_male$weight), len=100)
 
-male.preds <- predict(fcham_t4, newdata = data.frame(weight=weightnew, f.sex=malenew, f.year=yearnew, Jday=Jdaynew, f.council_cod=council_codnew), se=T)
+female.preds <- predict(fcham_t4, newdata = data.frame("weight"=f_weight, "f.sex"="female", "f.year"=median(db_female$year), "Jday"=mean(db_female$Jday), "f.council_cod"=median(db_female$council_cod)), se=T)
 
-female.preds <- predict(fcham_t4, newdata = data.frame(weight=weightnew, f.sex=femalenew, f.year=yearnew, Jday=Jdaynew, f.council_cod=council_codnew), se=T)
+male.preds <- predict(fcham_t4, newdata = data.frame("weight"=m_weight, "f.sex"="male", "f.year"=median(db_male$year), "Jday"=mean(db_male$Jday), "f.council_cod"=median(db_male$council_cod)), se=T)
 
 ################### helper ##########################
 addTrans <- function(color,trans)
@@ -115,16 +113,19 @@ addTrans <- function(color,trans)
 
 plot(horn ~ weight, cex=0.5, type="n")
 
-points(horn[f.sex=="female"] ~ weight[f.sex=="female"], cex=0.5, col="pink")
-points(horn[f.sex=="male"] ~ weight[f.sex=="male"], cex=0.5, col=addTrans("lightskyblue", 150))
-lines(male.preds$fit ~ weightnew, col="lightskyblue4", lwd=1.5)
+with(db_female, points(weight + 0.05, horn, col="pink"))
+with(db_male, points(weight - 0.05, horn, col="lightskyblue"))
+lines(male.preds$fit ~ weightnew, col="lightskyblue2", lwd=2)
 lines(male.preds$fit - 1.96*male.preds$se.fit ~ weightnew, col="red", lty=2)
 lines(male.preds$fit + 1.96*male.preds$se.fit ~ weightnew, col="red", lty=2)
 
-lines(female.preds$fit ~ weightnew, col="pink3", lwd=1.5)
+lines(female.preds$fit ~ weightnew, col="pink1", lwd=2)
 lines(female.preds$fit - 1.96*female.preds$se.fit ~ weightnew, col="red", lty=2)
 lines(female.preds$fit + 1.96*female.preds$se.fit ~ weightnew, col="red", lty=2)
 
+# abline(v=
+with(db, tapply(weight, f.sex, mean))
+#, col=c("pink", "lightskyblue"), lwd=2)
 
 
 vis.gam(fcham_t4, theta=-35)

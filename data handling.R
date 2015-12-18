@@ -36,6 +36,7 @@ outersect(colnames(db_chamois1), colnames(db_chamois2))
 
 # delete all unnecessary columns
 drops <- c(
+    "data", # date as string
     "exc.date2", # excel numeric date
     "Julia.date", # year + Julian day
     "date", # year # Julian day + random number
@@ -129,7 +130,7 @@ db$ndvi.may2 <- NULL
 
 # check for NA
 with(db, tapply(snow_winter1, year, function(y) sum(is.na(y))))
-summary(db$snow_winter1)
+summary(db$snow_winter2)
 summary(db$r_autumn)
 summary(db$tautumn.min)
 # No NAs!
@@ -169,29 +170,29 @@ db$q_range <- db$q_max - db$q_min
 
 
 # add pca for ndvi
-attach(db)
+# attach(db)
 # may ndvis
-pca1 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T)
+pca1 <- with(db, prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T))
 summary(pca1)
 # two PCS explain enough variance
 round(pca1$rotation, 2)
-biplot(pca1)
+# biplot(pca1)
 
 # all ndvis
-pca2 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T)
+pca2 <- with(db, prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T))
 summary(pca2)
 # two are enough
-biplot(pca2)
+# biplot(pca2)
 
 # summer ndvis
-pca3 <- prcomp(cbind(ndvi.summer1, ndvi.summer2), scale=T)
+pca3 <- with(db, prcomp(cbind(ndvi.summer1, ndvi.summer2), scale=T))
 summary(pca3)
 # pc1 is enough
-biplot(pca3)
+# biplot(pca3)
 
 # ndvi year one and ndvi year two seperated
-pca4.1 <- prcomp(cbind(ndvi.may1.new, ndvi.summer1), scale=T)
-pca4.2 <- prcomp(cbind(ndvi.may2.new, ndvi.summer2), scale=T)
+pca4.1 <- with(db, prcomp(cbind(ndvi.may1.new, ndvi.summer1), scale=T))
+pca4.2 <- with(db, prcomp(cbind(ndvi.may2.new, ndvi.summer2), scale=T))
 
 summary(pca4.1)
 summary(pca4.2)
@@ -214,6 +215,11 @@ db$ndvi.s1s2.pc1 <-pca3$x[, 1]
 db$ndvi.m1s1.pc1 <- pca4.1$x[, 1]
 # PCA of NDVI may2 and summer 2
 db$ndvi.m2s2.pc1 <- pca4.2$x[, 1]
+
+
+
+
+
 
 # drop weight > 25kg
 # yearlings are NOT that heavy!
