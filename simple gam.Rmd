@@ -313,4 +313,24 @@ AIC(fcham_t4) # 21862.54
 gam.check(fcham_e3)
 ```
 
-Now the effect is gone. Although the effect of the first principal component of NDVI is still significant, the model power is not better than the final model (delta AIC < 4)
+Now the effect is gone. Although the effect of the first principal component of NDVI is still significant, the model power is not better than the final model (delta AIC < 4).
+
+#### Winter weather data
+
+All winter data except for snow are uncorrelated and can be included in the model.
+
+```{r}
+fcham_e4 <- update(fcham_t4, . ~ . + s(twinter.min1, bs="ts", k=6) + s(twinter.min2, bs="ts", k=6) + s(twinter.mean1, bs="ts", k=6) + s(twinter.mean2, bs="ts", k=6) + s(twinter.max1, bs="ts", k=6) + s(twinter.max2, bs="ts", k=6) + s(Snow_cover_winter1, bs="ts", k=6) + s(Snow_cover_winter2, bs="ts", k=6))
+summary(fcham_e4) # Deviance explained = 53.1%
+plot(fcham_e4, page=1, scale=F)
+AIC(fcham_e4) # 21861.54
+AIC(fcham_t4) # 21862.54
+# there is a difference here
+gam.check(fcham_e4)
+```
+
+Again, some predictors like Snow duration during both winters and maximum winter temperatures are signiifcant predictors, but they are adding nothing to the model in terms of deviance explained.
+
+
+### Summary
+At this point, we ran out of time to try for more combinations, but the picture seems to be clear. Most variance is explained by three main predcitors sex, weight and Julian day.
