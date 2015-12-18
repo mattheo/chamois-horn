@@ -4,7 +4,7 @@ author: "Franz Johann, Liangwen He, Matthias Theobald"
 date: "18. December 2015"
 output: 
   html_document: 
-    fig_caption: yes
+    keep_md: yes
     number_sections: yes
     toc: yes
 ---
@@ -404,8 +404,8 @@ As in horn length, males show a smaller variance in mean weight over the years t
 Julian Day is the day of year the animal was shot. The hunting season begins in September and ends at the end of the year. It is consistent over the years.
 
 ```{r}
-range(Jday)#[1] 247 364
-max(Jday) - min(Jday)#timespan 117 days
+range(db$Jday)#[1] 247 364
+max(db$Jday) - min(db$Jday)#timespan 117 days
 with(db, tapply(Jday, year, min))
 with(db, tapply(Jday, year, max))
 ```
