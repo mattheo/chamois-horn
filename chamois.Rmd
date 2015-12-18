@@ -10,7 +10,10 @@ output:
 ---
 
 ```{r echo=F, message=FALSE}
-require(knitr)
+library(knitr)
+library(mgcv)
+library(Hmisc)
+library(psych)
 ```
 
 # Introduction
@@ -245,39 +248,268 @@ summary(db$tautumn.min)
 
 We now have a data set with `r nrow(db)` observations and `r ncol(db) - 1` variables as potential predictors.
 
-# Data Exploration
 
-## Horn length
+# Methods and Results
+
+## Data Exploration
+
 
 ```{r sex as factor, echo=F}
 # sex as factor
 db$f.sex <- as.factor(db$sex)
 levels(db$f.sex) <- c("female", "male") # relevel sex
+summary(db$f.sex)
 ```
 
-Differences in mean horn length between male and female:
+Of the `r nrow(db)` animals, 1218 are female and 1461 are male.
 
-```{r}
+### Horn length
+
+As our dependent variable, we wanted to know how horn length varies between sexes.
+
+First, we wanted to see the distribution of Horn size.
+```{r horn distr}
+summary(db$horn)
+hist(db$horn, breaks=40, freq=FALSE, main="Hornlength", xlab= "Length [mm]")
+lines(density(db$horn), lwd=1.5,lty =2)
+```
+
+Our dependent variable semms to be very close to normally distributed. However, we wanted to see whether the same holds true for the horn length between sexes.
+
+Mean horn length of male and female and dfifference between sexes:
+```{r horn sex mean}
 (horn_sex <- with(db, tapply(horn, f.sex, mean)))
 diff(horn_sex)
 ```
 
-Here we wanted to see how horn lengths differ over the years between the sexes.
+```{r horn length sd}
+boxplot(horn~f.sex, data = db, main= "Hornlength ",ylab= "length [mm]", xlab= "sex")
+```
 
+There are some data points far outside, but we accept them as still being within natural variability.
+
+```{r}
+hist(db$horn[db$sex==1],breaks=40,freq=FALSE,col=rgb(1,0,0,0.1), main="Hornlength", xlab= "Length [mm]")
+hist(db$horn[db$sex==2],breaks=40,freq=FALSE,add=TRUE,col=rgb(0,0,1,0.1))
+lines(density(db$horn[db$sex==1]), col="red", lwd=2,lty =2)
+lines(density(db$horn[db$sex==2]), col="blue", lwd=2, lty =1)
+legend("topright",lwd=c(2,2), lty= c(2,1),col=c("red","blue"),legend=c("female", "male"))
+```
+
+Also horn lengths between sexes are close to normally distributed.
+
+```{r}
+with(db, tapply(horn, f.sex, sd))
+```
+
+Males show a higher variability of horn length in general, although the difference is fairly small.
+
+Here we wanted to see how horn lengths differ over the years between the sexes.
 ```{r horn length year sd}
 # change over the years
 (horn_sexyear <- with(db, tapply(horn, list(year, f.sex), mean)))
 apply(horn_sexyear, 2, summary)
 apply(horn_sexyear, 2, sd)
-# males have less variance in mean horn length over the years
-boxplot(horn_sexyear, ylab="Hornlength [mm]", main="Mean Hornlength between years", xlab="sex")
+# males show less variance in mean horn length over the years
 ```
-There is some variability over the years that suggests using year as random effect in our model later on. However, males have less variability in horn lenghts over the years than females.
 
-```{r horn length sd}
-with(db, tapply(horn, f.sex, sd))
+There is some variability over the years that suggests using year as random effect in our model later on. However, males show less variability in horn lengths over the years than females.
 
-boxplot(horn~f.sex, data = db, main= "Hornlength ",ylab= "length [mm]", xlab= "sex")
+```{r}
+boxplot(horn~year, dat=db, main = "Hornlength", xlab="Year", ylab= "Hornlength")
+# in different years the distribution of hornlength is different
 ```
-However, males show a higher variability of horn length in general.
+
+
+### Weight
+
+Weight is measured in kilograms of the empty (i.e. gutted) yearling.
+
+```{r summary weight}
+summary(db$weight)
+```
+
+We deem an empty weight of more than 25 kg as too heavy for a yearling. Their mean weight is at around 15 kg. We therefore removed five individuals heavier than 25 kg from the data set.
+
+```{r remove too heavy animals}
+nrow(subset(db, weight > 25))
+db <- subset(db, weight < 25)
+```
+
+Distribution of weight:
+```{r weight distr}
+summary(db$weight)
+hist(db$weight, breaks=40, freq=F, xlab= "Weight [kg]", main="")
+hist(db$weight[db$sex==1],breaks=20,freq=FALSE,col=rgb(1,0,0,0.1), add=T)
+hist(db$weight[db$sex==2],breaks=20,freq=FALSE,add=TRUE,col=rgb(0,0,1,0.1))
+
+lines(density(db$weight), lwd=2, lty=3)
+lines(density(db$weight[db$sex==1]), col="red", lwd=2, lty = 2)
+lines(density(db$weight[db$sex==2]), col="blue", lwd=2, lty=1)
+legend("topright",lwd=c(2,2,2),lty= c(1,2,3), col=c("red","blue", "black"),legend=c("female", "male", "both"))
+```
+
+Weight has a strange distribution. Plotting the data reveals why.
+
+```{r}
+plot(horn ~ weight, data=db, main="Horn ~ Weight", xlab="Weight [kg]", ylab="Horn length [mm]")
+```
+
+The plot of horn length against weight shows some anomaly because of different scales of measurement. We analysed the scale detail of the data.
+
+```{r classifiying weight}
+# Problems with integers and floats in weight data
+# selecting all weight data which are whole numbers
+tol <- 1e-12
+int_weight <- rep(0, nrow(db))
+
+int_weight[sapply(db$weight, function(y) min(abs(c(y%%1, y%%1-1))) < tol)] <- 1
+
+sum(int_weight) # whole numbers in weight
+length(int_weight) - sum(int_weight) # floating point numbers
+
+# are the integers and floating point weigths evenly distributed over the areas?
+
+plot(with(db, tapply(int_weight, area_cod, function(y) sum(y)/length(y) * 100)), type="h", cex=1.4, main="Weight: perentage of integers", xlab="Area", ylab="")
+```
+
+In Some areas (or councils) the weight seems to be either guessed or the carcass is weighed on a scale displaying only whole nuembers. Although we thought about reclassifying weight data, we did not have enough time to include that in our models.
+
+
+Like horn size we wanted to see the difference of weight between sexes.
+
+```{r differences in weight between sexes}
+## differences in weight between sexes
+(weight_sex <- with(db, tapply(weight, f.sex, mean)))
+diff(weight_sex) # difference = 0.3 kg
+
+#graphical
+boxplot(weight~f.sex, data = db, ylab= "Weight [kg]", xlab= "sex")
+# but males have a higher variance in weight for the individuals
+```
+
+The difference in mean weight is not as substantial as the difference in mean horn length between sexes. However, males have a higher  median weight.
+
+```{r change of weight over years}
+(weight_sexyear <- with(db, tapply(weight, list(year, f.sex), mean)))
+apply(weight_sexyear, 2, summary)
+apply(weight_sexyear, 2, sd)
+
+```
+
+As in horn length, males show a smaller variance in mean weight over the years than females.
+
+### Julian Day
+
+Julian Day is the day of year the animal was shot. The hunting season begins in September and ends at the end of the year. It is consistent over the years.
+
+```{r}
+range(Jday)#[1] 247 364
+max(Jday) - min(Jday)#timespan 117 days
+with(db, tapply(Jday, year, min))
+with(db, tapply(Jday, year, max))
+```
+
+There is an 
+
+```{r}
+fgam1 <- gam(weight ~ s(Jday, bs="ts") + s(council_cod, bs="re") + s(year, bs="re"), data=db)
+summary(fgam1)
+plot(fgam1, select=1)
+```
+Apparantly the weight increases over the hunting period until ~ day 300 when it rapidly drops. This could  be explained that before October the animals find enough grass for feeding and grwoing, while later the winter has set on and they start to burn their body fat reserves. However, the effect is really small.
+
+
+```{r}
+Julgam1<-gam(weight~s(Jday, bs="ts") + f.sex + s(council_cod, bs="re") + s(year, bs="re"), data=db)
+vis.gam(Julgam1, plot.type="persp", theta=-145, main="Weight ~ Julianday + Sex",zlab="weight", xlab="female       male",ylab="Day of Hunting Season")
+summary(Julgam1)
+```
+
+
+
+
+
+
+
+
+## effect of Julian day on horn length  male & female #########################
+
+#Loess_horn_Julianday_male------------------------------------------------------------
+fmLoess_Jday_m <- loess(male$horn~male$Jday,family="gaussian",span=0.8)
+newday_m <- seq(from=min(male$Jday), to=max(male$Jday),by=1)
+pred_Horn_m <- predict(fmLoess_Jday_m, newday_m, se=TRUE)
+plot(horn~Jday, main ="Loess: Horn~Julianday",ylab="Hornlength [mm]",xlab="Day of the year",pch=1)
+lines(pred_Horn_m$fit~newday_m,col="blue", lwd=2)
+
+
+#Loess horn_Julianday_Female -------------------------------------------------------
+fmLoess_Jday_f <- loess(female$horn~female$Jday,family="gaussian",span=0.8)
+newday_f <- seq(from=min(female$Jday), to=max(female$Jday),by=1)
+pred_Horn_f <- predict(fmLoess_Jday_f, newday_f, se=TRUE)
+lines(pred_Horn_f$fit~newday_f,col="red", lwd=2, lty=2)
+
+abline(h=140,col="darkgreen",lwd=2,lty=3)
+abline(h=160,col="darkgreen",lwd=2,lty=3)
+legend("topright",lwd=c(2,2,2),lty=c(1,2,3),col=c("blue","red","darkgreen"),legend=c("male","female", "fix value 140 mm & 160 mm"),cex=0.8)
+# Loess regression shows decreasing hornlength at the beginning of the hunting season and increasing hornlength after day 275
+
+Julgam4<-gam(horn~s(weight)+s(Jday),data=db)
+vis.gam(Julgam4,theta=60,main="Hornlength ~ weight+Jday",zlab="Hornlength")
+
+# Gam with Interaction
+Julgam5<-gam(horn~s(weight,Jday),data=db)
+vis.gam(Julgam5,theta=60,main="Hornlength ~ (weight, Jday)",zlab="Hornlength")
+# the decrease could be effect of hunting selection but the effect has to be further invesigated including random effects of council.
+
+
+
+### Elevation
+
+
+
+
+### Councils and spatial distributions
+
+We wanted to see the spatial distribution of the councils, as well as the spatial distribution for our main predictors.
+
+```{r spatial distribution of weight}
+fm_spatial_weight <- gam(weight ~ s(x.council, y.council), data=db)
+vis.gam(fm_spatial_weight, plot.type="contour", main="Weight", xlab="x coords", ylab="y coords")
+points(db$x.council, db$y.council, col=db$area_cod, pch=20, cex=1.6)
+legend("bottomright", legend=paste("Area", unique(db$area_cod)), col=unique(db$area_cod), pch=20)
+```
+
+```{r elevation, unweighted and interpolated!}
+# interpolated elevation 
+fm_spatial_ele <- gam(q_media~s(x.council, y.council), data=db)
+vis.gam(fm_spatial_ele, plot.type = "contour", main="Elevation", xlab="x coords", ylab="y coords")
+points(db$x.council, db$y.council, col=db$area_cod, pch=20, cex=1.6)
+legend("bottomright", legend=paste("Area", unique(db$area_cod)), col=unique(db$area_cod), pch=20)
+```
+
+The spatial distribution suggests that our models might have spatial autocorrelation.
+
+Also, the distribution of councils and aggregation of data at council levels suggests that we should include councils as random factor besides years.
+
+```{r kills in councils}
+t(with(db, tapply(horn, council_cod, length)))
+
+```
+
+Council 15 has the most hunted anmimals
+
+```{r}
+
+hist(db$council_cod, breaks=length(unique(db$council_cod)), main="kills per council", xlab="council")
+
+with(db, tapply(horn, list(council_cod, year), length))
+
+```
+
+Also consistently over the years, council 15 has the most kills per year.
+
+
+
+
 
