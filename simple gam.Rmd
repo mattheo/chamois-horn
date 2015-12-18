@@ -1,0 +1,316 @@
+---
+title: "Untitled"
+author: "Franz Johann, Liangwen He, Matthias Theobald"
+date: "18. Dezember 2015"
+output: 
+  html_document: 
+    number_sections: yes
+    toc: yes
+---
+
+### Tiny GAMs
+
+Since our data exploration and random forest revealed that weight, sex and Jday were explaining the most variance and our check for collinearity revealed taht those remaining predictors were showing high collinearity, we decided to try an approach where we tested for each predictor in an independent model including mixed effects of year and council.
+
+```{r include=FALSE}
+library(mgcv)
+library(sp)
+library(Hmisc)
+
+load("db.RData")
+db_male <-subset(db, f.sex == "male")
+db_female <-subset(db, f.sex == "female")
+```
+
+#### Null model: random effects of year and council
+
+```{r Null Model}
+# Null Model:
+# just with council code and year
+fcham_t0 <- gam(horn ~ 1 + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t0) # Deviance explained = 12.4%
+plot(fcham_t0, page=1, scale=F, all=T)
+AIC(fcham_t0) # 23472.28
+gam.check(fcham_t0)
+```
+The reiduals allready look fine, there might be a slight problem considering normality of the random intercepts, but it should be fine. However, considering the spatial nature of our data we might have spatial autocorrelation
+
+```{r spatial autocrrelation null model}
+# spatial autocorrelation
+resids <-  residuals(fcham_t0)
+resids.spdf <- SpatialPointsDataFrame(coords=cbind(db$x.council + runif(nrow(db), min=-300, max=300), db$y.council +  runif(nrow(db), min=-300, max=300)), data=data.frame(resids))
+bubble(resids.spdf, maxsize=7)
+# add random jitter to the bubbles to better see underlying colors
+# all good
+```
+
+Including the councils as random effect already rids the model of spatial autocorrelation.
+
+```{r temporal autocorrelation}
+# check for temporal auocorrelation in the data
+pacf(db$horn, main="Series of Horn length")
+# all good
+
+pacf(residuals(fcham_t0))
+# all good
+```
+
+Although there definitely is temporal autocorrelation in the horn lengths, our null model shows no traces thereof.
+
+#### Adding sex to the null model
+
+```{r gam sex}
+fcham_t1 <- gam(horn ~ f.sex + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t1) # Deviance explained = 40.8%
+plot(fcham_t1, page=1, scale=F, all=T)
+AIC(fcham_t1) # 22431.79
+gam.check(fcham_t1)
+```
+
+Including sex as the main driver, this model now explains 40.8% of deviance. The AIC is much better than the null model.
+
+The effect of sex lies at 22.1 mm difference in horn length.
+
+
+
+#### Adding weight to the null model
+
+```{r gam weight}
+fcham_t2 <- gam(horn ~ s(weight, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t2) # Deviance explained = 24.5%
+plot(fcham_t2, page=1, scale=F)
+AIC(fcham_t2) # 23085.26
+gam.check(fcham_t2)
+```
+
+The residuals as well as the intercepts of our random intercepts don't look so good here, but are still 'ok'. Weight on itself does not eplains as much deviance as sex does. The AIC lies between null model and sex model.
+
+
+#### Adding Julian day to the null model
+
+The third most important predictor throughout our exploration seemed to be Julian day, the day of culling.
+
+```{r gam Jday}
+fcham_t3 <- gam(horn ~ s(Jday, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t3) # Deviance explained = 13.5%
+plot(fcham_t3, page=1, scale=F, all=T)
+AIC(fcham_t3) # 23439.6
+gam.check(fcham_t3)
+```
+
+Julian day has a clear linear effect on horn size. This makes sense because the horn of the animals still keeps on growing during the hunting sason. Because of its linearity, Julian day can and should be moved to the linear part of the model.
+
+```{r gam Jday linear}
+fcham_t3.1 <- gam(horn ~ Jday + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t3.1) # Deviance explained = 13.5%
+plot(fcham_t3.1, page=1, scale=F, all=T)
+AIC(fcham_t3.1) # 23439.43
+```
+
+The effect lies at about 0.09 mm per day. 
+
+#### Testing for interactions between predictors
+
+We had a strong intuition that sex and weight might be interacting, but also wanted to test for other interactions between those three predictors. 
+
+First, we tested for weight*sex. We added sex as a predictor without interactions to get a baseline and then added the interaction.
+
+```{r weight and sex}
+fcham_t2.1 <- gam(horn ~ f.sex + s(weight, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t2.1) # Deviance explained = 49.6%
+plot(fcham_t2.1, page=1, scale=F)
+AIC(fcham_t2.1) # 22006.7
+
+fcham_t2.2 <- gam(horn ~ f.sex + s(weight, bs="ts", by=f.sex) + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t2.2) # Deviance explained = 50.2%
+plot(fcham_t2.2, page=1, scale=F)
+AIC(fcham_t2.2) # 21980.35
+vis.gam(fcham_t2.2, theta=-35)
+
+```
+
+There is a significant interaction between weight and sex that adds explanatory power added to the model. The here AIC is 20 points lower than for the model without interaction.
+
+we then tested for an interaction between Julian day and sex. Again, the same strategy as before was followed.
+
+```{r Jday and sex}
+fcham_t3.2 <- gam(horn ~ Jday + f.sex + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t3.2) # Deviance explained = 42.7%
+plot(fcham_t3.2, page=1, scale=F, all=T)
+AIC(fcham_t3.2) # 22347.01
+
+fcham_t3.3 <- gam(horn ~ Jday*f.sex + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t3.3) # Deviance explained = 42.7%
+plot(fcham_t3.3, page=1, scale=F, all=T)
+AIC(fcham_t3.3) # 22348.68
+# no interaction between jday and sex
+```
+
+There is no interaction between sex and Julian day evident. 
+
+Lastly the interaction between weight and Julian day.
+
+```{r weight and Jday}
+fcham_t2.3 <- gam(horn ~ s(Jday, bs="ts") + s(weight, bs="ts") + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t2.3) # Deviance explained = 25.9%
+plot(fcham_t2.3, page=1, scale=F, all=T)
+AIC(fcham_t2.3) # 23036.67
+
+fcham_t2.4<- gam(horn ~ s(weight, Jday, bs="ts", by=f.sex) + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t2.4) # Deviance explained = 24.2%
+plot(fcham_t2.4, page=1, scale=F, all=T)
+AIC(fcham_t2.4) # 23093.55
+vis.gam(fcham_t2.4, theta=-35)
+```
+
+Although the interaction is significant, the AIC of the interaction model is worse than the model without interaction.
+
+We then decided on a final model structure for our basic model.
+
+#### Final model structure
+
+
+```{r weight, sex and Jday}
+# weight, sex and Jday
+fcham_t4 <- gam(horn ~ f.sex + Jday + s(weight, bs="ts", by=f.sex) + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
+summary(fcham_t4) # Deviance explained = 52.4%
+AIC(fcham_t4) # 21862.54 best so far
+
+#check the gam
+gam.check(fcham_t4) # all good
+shapiro.test(resid(fcham_t4)) # good
+acf(residuals(fcham_t4)) # all good
+# spatial autocorrelation
+resids <-  residuals(fcham_t4)
+resids.spdf <- SpatialPointsDataFrame(coords=cbind(db$x.council + runif(nrow(db), min=-300, max=300), db$y.council +  runif(nrow(db), min=-300, max=300)), data=data.frame(resids))
+bubble(resids.spdf, maxsize=7)
+# all good!
+```
+
+There is no autocorrelation in this model, neither temporal nor spatial.
+
+```{r}
+# weight, sex and Jday
+fcham_t4 <- gam(horn ~ f.sex + Jday + s(weight, bs="ts", by=f.sex) + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=T)
+summary(fcham_t4) # Deviance explained = 52.4%
+AIC(fcham_t4) # 21862.54 best so far
+```
+
+With REML=T nothing changes.
+Now this model explains 52.4% of deviance which, as we will later see, is about the same as a full model with lots of environmental predictors can explain.
+
+From here on we followed to approaches: 
+
+ 1. We built a full model including as many predictors as possible without running into collineraity issues (complex GAMs). We then split the dataset into females and males, using the complex model and doing model selection, trying to find the most important environmental predictor for either sex.
+ 2. We added single environmental predictors one after the other to the above final model structure and looked for a better model fit (simple GAMs). We then tested for interactions of that environmental predictor with sex to see if males and females react differently to that predictor.
+ 
+### Simple GAMs
+
+#### Substrate as predictor
+
+The first environmental predictor we tested was substrate. With this data a paper has been published, claiming that substrate is a main driver in horn size of Chamois.
+
+```{r substrate}
+fcham_e1 <- update(fcham_t4, . ~ . + f.substrate)
+summary(fcham_e1) # Deviance explained = 52.3%
+plot(fcham_e1, page=1, scale=F, all=T)
+AIC(fcham_e1) # 21858.87
+AIC(fcham_t4) # 21862.54
+# slightly better!
+```
+
+Substrate is a significant predictor, however the model only gets slightly better (delta AIC < 4)
+
+We then tested for an interaction between substrate and sex.
+
+```{r substrate and sex}
+fcham_e1.1 <- update(fcham_t4, . ~ . + f.substrate*f.sex)
+summary(fcham_e1.1) # Deviance explained = 40.7%
+plot(fcham_e1.1, page=1, scale=F, all=T)
+AIC(fcham_e1.1) # 21860.8
+# No interaction!!
+```
+
+There is no interaction
+
+
+#### Elevation as predictor
+
+Next is mean elevation. During exploration we fought this predictor might be the most important after sex, weight and Julian day.
+
+```{r}
+fcham_e2 <- update(fcham_t4, . ~ . + s(q_media, bs="ts"))
+summary(fcham_e2) # Deviance explained = 52.4%
+plot(fcham_e2, page=1, all=T)
+AIC(fcham_e2) # 21860.11
+AIC(fcham_t4) # 21862.54
+# no difference
+```
+
+Again, although mean elevation is a significant predictor, it does not make the model predictions better compared to the final model structure (delta AIC < 3)
+
+Interaction elevation and sex:
+ 
+```{r}
+fcham_e2.1 <- update(fcham_t4, . ~ . + s(q_media, bs="ts", by=f.sex))
+summary(fcham_e2.1) # Deviance explained = 52.3%
+plot(fcham_e2.1, page=1, all=T)
+AIC(fcham_e2) # 21860.07
+AIC(fcham_t4) # 21862.54
+# no difference
+```
+
+There is no significant interaction.
+
+We also had minimum and maximum elevation as drivers for horn size in the random forest model (without random effects)
+
+
+```{r}
+fcham_e2.2 <- update(fcham_t4, . ~ . + s(q_min, bs="ts"))
+summary(fcham_e2.2) # Deviance explained = 52.4%
+plot(fcham_e2.2, page=1, all=T)
+AIC(fcham_e2.2) # 21862.48
+AIC(fcham_t4) # 21862.54
+# no difference
+```
+
+```{r}
+fcham_e2.3 <- update(fcham_t4, . ~ . + s(q_max, bs="ts"))
+summary(fcham_e2.3) # Deviance explained = 52.4%
+plot(fcham_e2.3, page=1, all=T)
+AIC(fcham_e2.3) # 21862.53
+AIC(fcham_t4) # 21862.54
+# no difference
+```
+
+
+Both minimum and maximum elevation add nothing to the model.
+
+#### NDVI as predictor
+
+We used the first two principal components of NDVI of May in the first and second year.
+
+```{r}
+fcham_e3 <- update(fcham_t4, . ~ . + s(ndvi.m1m2.pc1, bs="ts") + s(ndvi.m1m2.pc2, bs="ts"))
+summary(fcham_e3) # Deviance explained = 53.1%
+plot(fcham_e3, page=1, scale=F)
+AIC(fcham_e3) # 21844.74
+AIC(fcham_t4) # 21862.54
+# there is a difference here
+gam.check(fcham_e3)
+```
+
+This added some explanatory power to the model. However, the GAM fitted a spline with more than 7 edf to the data. This is not interpretable as a predictor.
+We therefor tried reducing the knots for the spline to see the effects more clearly.
+
+```{r}
+fcham_e3.1 <- update(fcham_t4, . ~ . + s(ndvi.m1m2.pc1, bs="ts", k=4) + s(ndvi.m1m2.pc2, bs="ts", k=4))
+summary(fcham_e3.1) # Deviance explained = 53.1%
+plot(fcham_e3.1, page=1, scale=F)
+AIC(fcham_e3.1) # 21859.16
+AIC(fcham_t4) # 21862.54
+# there is a difference here
+gam.check(fcham_e3)
+```
+
+Now the effect is gone. Although the effect of the first principal component of NDVI is still significant, the model power is not better than the final model (delta AIC < 4)
