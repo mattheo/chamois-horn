@@ -1,18 +1,54 @@
+---
+title: "gams_sex_separated"
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+---
+
+## Male and female separated Gams 
+
+
+Loading the mgcv library
+
+```{r,message = FALSE}
 library(mgcv)
+```
+Loading the database and creating separated datasets for male and female chamois respectively
+```{r}
+
 load("db.RData")
 male_db<-subset(db,sex ==  2)
 female_db<-subset(db,sex == 1)
 
+```
+Building different gams based on gam "c5" with a set of variables which had been found as being best explaining the horngrowth by using a wide range of explaining variables.
 
+Randomforest had revealed weight, julianday, elevation (q_media), ndvi summer, ndvi may and percentage of open area as relevant factors. Ndvi may, ndvi summer, elevation and percentage of open area are not included in the model so far. Different models which include one of the additional environmental variables could reveal by AIC analysis different importance of the variables for the different sexes.
 
+### NDVI models
 
-# New gam differing PCI´s #############################################################################################################
-# Each model separately correlation ckecked###########################################################################################
+Different principal component analysis vectors had been build for vegetation indices (ndvi):
 
-# only may1+ may2
-#varclus
+- may year 1 and may year2
+- summer year 1 and summer year 2
+- may year 1 and summer year 1
+- may year 2 and summer year 2
+
+see data handling.
+
+#### NDVI PCA May year 1 and May year 2
+
+Testing for correlation of model variables in the male and female subsets.
+
+```{r,message = FALSE, warning=FALSE}
 library(Hmisc)
 attach(female_db)
+attach(male_db)
+```
+
+```{r}
+
 vFx1 <- as.formula(horn ~
 
                        Jday +
@@ -42,7 +78,7 @@ par(mfrow=c(1,1))
 plot(varclus(vFx1, data=female_db))
 abline(h=0.5,col="red")
 
-attach(male_db)
+
 vMx1 <- as.formula(horn ~
                      
                      Jday +
@@ -72,12 +108,26 @@ vMx1 <- as.formula(horn ~
 plot(varclus(vMx1, data=male_db))
 abline(h=0.5,col="red")
 
-#t_summer1.mean und snow winter2 correlated in male and female
-#r_newsummer1 and tautum.mean correlated in male and female
+```
 
+t_summer1.mean and snow winter2 are correlated in male and female.
+r_newsummer1 and tautum.mean are correlated in male and female.
+Correlating variables will be excuded and seperated models will be tested with replaced variables 
 
-#model omitting snow-winter2 and r_newsummer1
+- t_summer1.mean or snow winter2
+- r_new summer1 or tautumn.mean
 
+Loading models.
+load
+```{r,message =FALSE}
+load(file="sex_sep_models.Rdata")
+```
+
+Model omitting snow-winter2 and r_newsummer1 
+
+Male model:
+
+```{r,eval=FALSE}
   M_x1.1 <-  gam(horn ~
                  
                  s(density,k=3, bs="ts") +
@@ -105,9 +155,18 @@ abline(h=0.5,col="red")
                  s(tautumn.mean, k=3, bs="ts"),
                data=male_db, REML=F)
 
-AIC(M_x1.1)# 11923.48
+)
 
 
+
+```
+```{r}
+AIC(M_x1.1)
+```
+
+
+Female model:
+```{r,eval=FALSE}
 F_x1.1 <-  gam(horn ~
                  s(density,k=3, bs="ts") +
                  f.substrate +
@@ -136,13 +195,20 @@ F_x1.1 <-  gam(horn ~
 
 
 
-AIC(F_x1.1)# 9924.014
+
+```
+
+```{r}
+AIC(F_x1.1)
+```
+Checking model
+
+```{r}
 gam.check(F_x1.1)
-par(mfrow=c(1,1))
-vis.gam(F_x1.1,view=c("weight","density"),theta=50)
 
-
-#rename for plotting routine------------------------------------------
+```
+Rename for plotting routine and plot effects
+```{r}
 MOD_F<-(F_x1.1)
 MOD_M<-(M_x1.1)
 
@@ -210,9 +276,10 @@ plot(MOD_M,main="male",all=T,select=20)
 
 plot(MOD_F,main="female",all=T,select=21)
 plot(MOD_M,main="male",all=T,select=21)
+```
 
-
-#model omitting snow winter and tautumn.mean
+The same procedure ommitting different combinations of the collinear climate variables.
+```{r,eval=FALSE}
 
 M_x1.2 <-  gam(horn ~
                  s(Jday,bs="ts") +
@@ -394,10 +461,14 @@ F_x1.4 <-  gam(horn ~
 AIC(F_x1.4)# 9921.959
 
 
+```
 
-###  NDVI  only summer1 and summer2     ##########################################
-#varclus
+An overview of the AIC´s will be presented in a table furter below.
 
+#### NDVI PCA Summer 1 and summer 2
+
+Check for collinearity
+```{r}
 vMx2 <- as.formula(horn ~
                      
                      Jday +
@@ -454,12 +525,16 @@ vFx2 <- as.formula(horn ~
 plot(varclus(vFx2, data=female_db))
 abline(h=0.5,col="red")
 
-#same as M/F_x1:
-#t_summer1.mean und snow winter2 correlated in male and female
-#r_newsummer1 and tautum.mean correlated in male and female
+```
 
+Corelations are the same as in the previous models.
 
-#model omitting snow-winter2 and r_newsummer1
+ - t_summer1.mean und snow winter2 correlated in male and female
+ - r_newsummer1 and tautum.mean correlated in male and female
+ 
+The same procedure as with NDVI May1 and May2. 4 models for male and 4 models for female ommitting different combinations of collinear climate variables.
+
+```{r,eval=FALSE}
 
 M_x2.1 <-  gam(horn ~
                  s(Jday,bs="ts") +
@@ -690,11 +765,14 @@ F_x2.4 <-  gam(horn ~
 
 
 AIC(F_x2.4)# 9925.488
-#####################################################################################################################################
-#####################################################################################################################################
-# PCA  may1 and summer1
-#varclus
+```
 
+
+#### NDVI PCA May and summer of the first year
+
+Check for collinearity
+
+```{r}
 vMx3 <- as.formula(horn ~
                      
                      Jday +
@@ -751,13 +829,15 @@ vFx3 <- as.formula(horn ~
 plot(varclus(vFx3, data=female_db))
 abline(h=0.5,col="red")
 
-#same as M/F_x1:
-#t_summer1.mean und snow winter2 correlated in male and female
-#r_newsummer1 and tautum.mean correlated in male and female
+```
 
+same as with previous PCA
+t_summer1.mean und snow winter2 correlated in male and female
+r_newsummer1 and tautum.mean correlated in male and female
 
-#model omitting snow-winter2 and r_newsummer1
+The same procedure as above. Running 4 models for male and 4 models for female ommitting different combinations of collinear climate variables.
 
+```{r,eval=FALSE}
 M_x3.1 <-  gam(horn ~
                  s(Jday,bs="ts") +
                  f.substrate +
@@ -989,16 +1069,14 @@ F_x3.4 <-  gam(horn ~
 
 AIC(F_x3.4)#9921.486
  
+```
 
-# no more gam problem (maxit= 600)
-
-#############################################
-##############################################
+#### NDVI PCA May and summer of the second year
 
 
-# PCA  may2 and summer2
-#varclus
+Collinearity check
 
+```{r}
 vMx4 <- as.formula(horn ~
                      
                      Jday +
@@ -1055,13 +1133,16 @@ vFx4 <- as.formula(horn ~
 plot(varclus(vFx4, data=female_db))
 abline(h=0.5,col="red")
 
-#same as M/F_x1:
-#t_summer1.mean und snow winter2 correlated in male and female
-#r_newsummer1 and tautum.mean correlated in male and female
 
+```
 
-#model omitting snow-winter2 and r_newsummer1
+Same result as as above: 
+ - t_summer1.mean und snow winter2 correlated in male and female
+ - r_newsummer1 and tautum.mean correlated in male and female
+ 
+Again running 4 models for male and 4 models for female ommitting different combinations of collinear climate variables.
 
+```{r,eval=FALSE}
 M_x4.1 <-  gam(horn ~
                  s(Jday,bs="ts")+
                  f.substrate +
@@ -1290,56 +1371,17 @@ F_x4.4 <-  gam(horn ~
                ,data=female_db, REML=F)
 
 AIC(F_x4.4)#  9924.151
+```
+A look at the summary for significance
+```{r}
 summary(F_x4.4)
+```
+### Elevation
 
-#########################################################################################
+Model including elevation instead of NDVI PCA
 
-
-# only may1+ may2
-#varclus
-library(Hmisc)
-attach(female_db)
-vFx1 <- as.formula(horn ~
-                     
-                     s(Jday,bs="ts") +
-                     f.substrate +
-                     year +
-                     council_cod +
-                     weight +
-                     density +
-                     log.ndvi.slop1 +
-                     log.ndvi.slop2 +
-                     ndvi.maxincr1 +
-                     ndvi.maxincr2 +
-                     ndvi.m1m2.pc1 +
-                     ndvi.m1m2.pc2 + 
-                     snow_winter1 +
-                     snow_winter2 +
-                     r_newsummer1 +
-                     r_newsummer2 +
-                     twinter.mean1 +
-                     twinter.mean2 +
-                     tspring1.mean +
-                     tspring2.mean +
-                     tsummer1.mean +
-                     tsummer2.mean +
-                     tautumn.mean)
-par(mfrow=c(1,1))
-plot(varclus(vFx1, data=female_db))
-abline(h=0.5,col="red")
-
-######################################
-#resume in female omitting  tsummer1.mean and tautumn.mean (.4) has mostly the best AIC, in male no trend
-#next models only using snow winter2 and r_newsummer1
-#################################################################
-#wintersnow and summerrain has more effect on female than on male !!!!!!!!!!!!!! see table
-#################################################################
-#next models only using snow winter2 and r_newsummer1
-
-
-# q _ media##############################################################################
-
-names (male_db)
+Collinearity check:
+```{r}
 vMq <- as.formula(horn ~
                      
                      Jday +
@@ -1397,10 +1439,11 @@ vFq <- as.formula(horn ~
 
 plot(varclus(vFq, data=female_db))
 abline(h=0.5,col="red")
+```
 
-#now all good
+Three variables had been ommitted because of collinearity. Models for male and for female:
 
-
+```{r,eval=FALSE}
 Mq1 <-  gam(horn ~
                  s(Jday,bs="ts") +
                  f.substrate +
@@ -1426,9 +1469,9 @@ Mq1 <-  gam(horn ~
                  #s(tautumn.mean, k=3, bs="ts")
                ,data=male_db, REML=F)
 
-par(mfrow=c(1,1))
-plot(Mq1,select = 10)
-#for q_media  bs="ts" would be sufficient but k=4 because due to necessarity in the female mode
+
+
+
 
 AIC(Mq1)#11928.13
 
@@ -1458,16 +1501,26 @@ Fq1 <-  gam(horn ~
               #s(tautumn.mean, k=3, bs="ts")
             ,data=female_db, REML=F)
 
-plot(Fq1,select = 10)
 #q_media k=4 applied 
 AIC(Fq1)# 9922.87
 summary(Fq1)
+```
 
+For q_media bs="ts" would be sufficient in the male model but in both sexes  k=4 was set because of necessarity in the female model
 
-#Perc area aperta  #########################################################################################################
+```{r}
+par(mfrow=c(1,1))
+plot(Fq1,select = 10)
 
+```
 
-names (male_db)
+### Open area
+
+Variable percentage of open area replaces the variable elevation in the model.
+
+Check for collinearity:
+
+```{r}
 vMaa <- as.formula(horn ~
                     
                     Jday +
@@ -1525,11 +1578,14 @@ vFaa <- as.formula(horn ~
 
 plot(varclus(vFaa, data=female_db))
 abline(h=0.5,col="red")
-#allgood
-
-# all good
 
 
+```
+All good
+
+Male and female models:
+
+```{r,eval=FALSE}
 Maa1 <-  gam(horn ~
               s(Jday,bs="ts") +
               f.substrate +
@@ -1555,12 +1611,26 @@ Maa1 <-  gam(horn ~
             #s(tautumn.mean, k=3, bs="ts")
             ,data=male_db, REML=F)
 
-plot(Maa1,select = 10)
-#ok --
-
 AIC(Maa1)#11927.25
 summary(Maa1)
 
+
+```
+
+```{r}
+plot(Maa1,select = 10)
+```
+
+Perc_area_aperta k=3 is ok
+
+```{r}
+summary(Maa1)
+```
+
+Percentage of open area (Perc_area_aperta) is significant
+
+
+```{r,eval=FALSE}
 Faa1 <-  gam(horn ~
               s(Jday,bs="ts") +
               f.substrate +
@@ -1586,94 +1656,53 @@ Faa1 <-  gam(horn ~
               #s(tautumn.mean, k=3, bs="ts")
             ,data=female_db, REML=F)
 
+```
+k was reduced in M/Faa1 to k=3 because of a better modelling in the model for female (Faa1)
+```{r}
 plot(Faa1,select = 10)
-#k was reduce in M/Faa1 to k=3 because of a better modelling in Faa1
 gam.check(Faa1)
+```
+
+```{r}
 shapiro.test(resid(Faa1))
-summary(Faa1)
+```
+ok
 
-AIC(Faa1)# 9924.67
+
+### Model comparison
 
 
-#Best models with REML=T#########################################################################
 
-#best male model with REML=T
-
-M_x1.1T <-  gam(horn ~
-                 
-                 s(density,k=3, bs="ts") +
-                 f.substrate +
-                 s(f.year, bs="re") +
-                 s(f.council_cod, bs="re") +
-                 s(weight, bs="ts") +
-                 s(Jday,bs="ts") + 
-                 s(log.ndvi.slop1, bs="ts") +
-                 s(log.ndvi.slop2, bs="ts") +
-                 s(ndvi.maxincr1, bs="ts") +
-                 s(ndvi.maxincr2,k=4, bs="ts") +
-                 s(ndvi.m1m2.pc1,k=4, bs="ts") +
-                 s(ndvi.m1m2.pc2,k=4, bs="ts") +
-                 s(snow_winter1, k=3, bs="ts") +
-                 #s(snow_winter2, k=3, bs="ts") +
-                 #s(r_newsummer1, k=3, bs="ts") +
-                 s(r_newsummer2, k=3, bs="ts") +
-                 s(twinter.mean1, k=3, bs="ts") +
-                 s(twinter.mean2, k=3, bs="ts") +
-                 s(tspring1.mean, k=3, bs="ts") +
-                 s(tspring2.mean, k=3, bs="ts") +
-                 s(tsummer1.mean, k=3, bs="ts") +
-                 s(tsummer2.mean, k=3, bs="ts") +
-                 s(tautumn.mean, k=3, bs="ts"),
-               data=male_db, REML=T)
-
-AIC(M_x1.1T)#11923.48
-
-# best female model with REML=T
-F_x3.4T <-  gam(horn ~
-                 s(Jday,bs="ts") +
-                 f.substrate +
-                 s(f.year, bs="re") +
-                 s(f.council_cod, bs="re") +
-                 s(weight, bs="ts") +
-                 s(density,k=3, bs="ts") +
-                 s(log.ndvi.slop1, bs="ts") +
-                 s(log.ndvi.slop2, bs="ts") +
-                 s(ndvi.maxincr1, bs="ts") +
-                 s(ndvi.maxincr2,k=4, bs="ts") +
-                 s(ndvi.m1s1.pc1,k=4, bs="ts") +
-                 s(snow_winter1, k=3, bs="ts") +
-                 s(snow_winter2, k=3, bs="ts") +
-                 s(r_newsummer1, k=3, bs="ts") +
-                 s(r_newsummer2, k=3, bs="ts") +
-                 s(twinter.mean1, k=3, bs="ts") +
-                 s(twinter.mean2, k=3, bs="ts") +
-                 s(tspring1.mean, k=3, bs="ts") +
-                 s(tspring2.mean, k=3, bs="ts") +
-                 #s(tsummer1.mean, k=3, bs="ts") +
-                 s(tsummer2.mean, k=3, bs="ts")
-               #s(tautumn.mean, k=3, bs="ts")
-               ,data=female_db, REML=T)
-
-AIC(F_x3.4T)#9921.486
-
-aic_tab <- read.csv("Model_evaluation3.csv", sep=";")
-aic_tab<-aic_tab[-19:-24,-6:-9]
-save(aic_tab,file="aic_tab.Rdata")
-load("aic_tab.RData")
+```{r,message=FALSE,warnings=FALSE}
 library(knitr)
+```
 
-summary (aic_tab$AIC_female)
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#9921    9923    9924    9924    9924    9926
+Table of AIC´s:
 
-# the AIC values of the different female models are very similar.
+ - m1m2 = models with NDVI May of first and second year
+ - s1s2 = models with NDVI summer of first and second year
+ - m1s1 = models with NDVI May and summer of the first year
+ - m2s2 = models with NDVI May and summer of the second year
+ 
+```{r}
+
+load("aic_tab.RData")
+kable(aic_tab)
+```
+
+Summary of the AICs of models of male chamois hornlength
+
+```{r}
+
 summary (aic_tab$AIC_male)
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#11920   11930   11930   11930   11930   11930
+```
 
-# the IC values of the different male models are very similar.
-# conclusion
-# the replacement of different variables which had been identified as relevant by the randomForest analysis in different
-# male or female models did not underpin a hypothesis of differences in male and female chamois regarding the effect of the investigated environmental variables.
+Summary of AICs of the models of female chamois hornlength
 
-save.image(file="sex_sep_models.Rdata")
+```{r}
+summary (aic_tab$AIC_female)
+```
+
+Conclusion:
+Different variables which had been identified as relevant for the horn length by the randomForest analysis had been tested in separate male and female models.The AIC values of the different models are very similar within each sex.
+The resulting AIC´s did not underpin a hypothesis of differences in the effect of the investigated environmental variables regarding male or female chamois hornlength.
