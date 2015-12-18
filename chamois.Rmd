@@ -2,7 +2,11 @@
 title: "Chamois"
 author: "Franz Johann, Liangwen He, Matthias Theobald"
 date: "18. Dezember 2015"
-output: html_document
+output: 
+  html_document: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
 ---
 
 # About the data
