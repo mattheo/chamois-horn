@@ -9,25 +9,33 @@ output:
     toc: yes
 ---
 
-```{r echo=F}
+```{r echo=F, message=FALSE}
 require(knitr)
 ```
 
+# Introduction
 
-# About the data
+
+
+## About the data
 We have received a data set of 2679 observations from hunted animals of the species *Rupicapra rupicapra* (Chamois) in the Eastern Italian Alps in the region of Alto Adige (South Tirol). The shot animals are yearlings culled during the hunting season of their second year. The hunting season is from September to December. The data measured from each individual is 
 
-- horn length,
-- weight, and
-- sex.
+- horn length in mm,
+- weight in kg,
+- sex,
+- Year and Julian Day of the culling, as well as
+- Council and Area Code.
 
-?density ?Jday
 
-Also included in the data set is the council where the animal was shot, which in turn belongs to one of five administrative areas. Furthermore, there are environmental data, aggregated at the level of either council or area.
+Also included in the data set is the council where the animal was shot, which in turn belongs to one of five administrative areas. Furthermore, there are environmental data, aggregated at either council or area level.
 
 ## Description of Environmental Data
 
-We have the geographic coordinate, elevation and aspect for each council. In the area level the substrate is separated to two categories: siliceous and calcareous. As for weather data we have in the global climate scale North Atlantic Oscillation(nao) index, in the local scale there are particular temperature and precipitation for each season covered by the life history of killed chamois. The Normalized Difference Vegetation Index(NDVI) was used to reflect the food supply for chamois.
+Because of problems with the data we have one value for temperature, precipitation and snow for each season covered by the life history of the killed individual for the study area. There is also information about the global climate scale North Atlantic Oscillation(NAO) index.
+
+At area level there is substrate with two categories: siliceous and calcareous. Animal density is supplied per year which is then either confirmed in the next year or changed.
+
+We have the geographic coordinate, elevation and aspect for each council. Also recorded is the Percentage of open area in the council. The Normalized Difference Vegetation Index (NDVI) is used as an indicator for food supply.
 
 ## Struggling with Data
 
@@ -35,12 +43,9 @@ The first data set we received only included partial weather data. First, we wan
 Second, there was no weather data about the autumn the yearling experienced.
 Third, while exploring the data, we found several inconsistencies in the weather data.
 
-Because of that, we asked for a larger data set including the weather data of the first winter during pregnancy and also asked for clarification on the issues with the weather station. We received a second data set where the requested information was provided, but 1100 observations of shot animals were removed, so only 1560 were available. The researchers responsible for the data argued that probably the removed data was not reliable. Our argument though is that each and every observation is useful and should be included in the model.
-We therefore set out to work on merging the two data sets and filling the holes in the old data set with meaningful weather data from the second data set.
+Because of that, we asked for a larger data set including the weather data of the first winter during pregnancy and also asked for clarification on the issues with the weather station. We received a second data set where the requested information was provided, but 1100 observations of shot animals were removed, so only 1560 were available. The researchers responsible for the data argued that the removed data was probably not reliable. Our argument though is that each and every observation is useful and should be included in the model. We therefore set out to work on merging the two data sets and filling the holes in the first set with meaningful weather data from the second.
 
-## More Problem with Data
-
-When we are trying to bring the two data set together, we found that the relationships between the weather data of different areas are unsteady, which actually should have some equality because of the sharing of same weather stations. The result turn out to be that since not all the stations are at work in the same time, some councils have to even borrow weather data from other area, when the own weather station next to it is closed. This is a serious problem, we can now no more maintain that the weather data for each council is true.
+We received information from the curators of the data about the weather stations they used for the different areas. the When trying to bring the two data sets together we found that the relationships between the weather data of different areas are unsteady, although they should have shared the same stations. It turned out that since not all stations were working consistently throughout the study some areas had to borrow weather data from other area. This is a serious problem, we can now no more maintain that the weather data for each council is true.
 To deal with this problem, we try to find out one council sample, which on one side has insisted with the weather data from one station continuously from 2005 to 2012, and on the other side can be representative of the whole research area considering its elevation(finally council 39). Then we generalizing its weather data to the whole research area for each year. At last we would introduce an interaction between elevation and aspect, which should reflect the true variance of weather in different councils.
 
 ## Loading the data sets into R
@@ -58,6 +63,7 @@ db_chamois2 <- read.csv("chamois2.csv", sep=";")
 
 
 #rename columns so merging can work its magic
+# in the new data set, a "2"" is appended at the end of the columns names
 db_chamois1$Snow_cover_winter2 <- db_chamois1$Snow_cover_winter
 db_chamois1$snow_winter2 <- db_chamois1$snow_winter
 db_chamois1$twinter.max2 <- db_chamois1$twinter.max
@@ -93,9 +99,10 @@ db_merge <- merge(db_chamois1, db_chamois2, all.x=T)
 
 # delete all unnecessary columns
 drops <- c(
+    "data", # date as string
     "exc.date2", # excel numeric date
     "Julia.date", # year + Julian day
-    "date", # year # Julian day + random number
+    "date", # year + Julian day + random number
     "x", # coordniates + small random step for spatial analysis
     "y", # same
     "x2", # same
@@ -109,23 +116,38 @@ drops <- c(
     "h_w", # ratio hor length to weight
     "index" # Indice of above ratio
 )
+
+# drop unnecessary columns
 db_merge <- db_merge[, !names(db_merge) %in% drops]
+
+# order the dataframe by id
+db_merge <- db_merge[order(db_merge$id), ]
+```
+
+These are the columns present in the new merged data.
+
+```{r db_merge names, echo=F}
 names(db_merge)
 ```
-Here are the columns present in the new merged data.
 
-```{r outersect table}
+These 15 columns are not present in the first first set.
+
+```{r outersect table, echo=F}
 # what columns are new in the new data set?
 outersect(colnames(db_chamois1), colnames(db_chamois2))
 ```
 
-These 15 columns are not present in the first first set. We need to take values from the second set and include them in the first set. Here the problem is that the use of weather stations i inconsistent, as well as some of the stations are not present in all councils and some councils use weather data from a station which is unsuitable to represent the whole study area.
+Our first approach was to take the weather data from the areas present in the second data (area 1 and 6) set and put them in the same area of the first set. We then wanted to interpolate over elevation to get new values for those areas not in the second set (area 2, 3, and 4).
+
+```{r areas in the first and second set}
+unique(db_chamois1$area_cod)
+unique(db_chamois2$area_cod)
+```
+
+We need to take values from the second set and include them in the first set. Here the problem is that the use of weather stations is inconsistent, as well as some of the stations are not present in all councils and some councils use weather data from a station which is unsuitable to represent the whole study area.
+
 
 ```{r fixing weather}
-# consistency of kills in councils: not every year a chamois was shot in every council
-with(db_merge, tapply(horn, list(council_cod, year), length))
-# we need the consistent council to select which weather data to use
-
 
 # make weather data consistent
 # select all weather data
@@ -167,7 +189,20 @@ weather_data <- c(
     "tsummer2.max",
     "tsummer2.mean"
 )
+```
 
+Now, we first have to check in which councils chamois were hunted each year.
+```{r consistency check}
+# consistency of kills in councils: not every year a chamois was shot in every council
+with(db_merge, tapply(horn, list(council_cod, year), length))
+# we need the consistent council to select which weather data to use
+```
+
+Councils 27, 10, 8 39 and 49 are ok and use weather data from statsions with continuous measurements throughout the study.
+
+The data from council 39 and 49 are from the weather station *Pinzolo Val Genova*, which we deem best for representing the wohle study area. We picked council 39 for our purpose.
+
+```{r weather stations}
 # weather data from council 27 for each year
 station27 <- unique(db_merge[db_merge$council_cod==27, c("year", weather_data)]) # not okay: year2007
 # for the weather data in autumn, council27 has 2 values for the year 2007
@@ -180,11 +215,69 @@ station49 <- unique(db_merge[db_merge$council_cod==49, c("year", weather_data)])
 # representative!
 
 
-
 # merge the new weather data set into the old one
 # removing the old weather columns first
 db <- merge(db_merge[, !names(db_merge) %in% weather_data], station39, by="year", all=F)
-
-
 ```
+
+Lastly, we remove columns of variables which are either updated or removed in the new data set because they have errors.
+
+```{r remove columns}
+# remove the old summer precipitation data
+db$r_summer_1 <- NULL
+db$r_summer_2 <- NULL
+
+# remove old may ndvi. it's incorrect
+db$ndvi.may1 <- NULL
+db$ndvi.may2 <- NULL
+```
+
+A quick check for NA in the new data set:
+```{r check for NA}
+# check for NA
+with(db, tapply(snow_winter1, year, function(y) sum(is.na(y))))
+summary(db$snow_winter2)
+summary(db$r_autumn)
+summary(db$tautumn.min)
+# No NAs!
+```
+
+
+We now have a data set with `r nrow(db)` observations and `r ncol(db) - 1` variables as potential predictors.
+
+# Data Exploration
+
+## Horn length
+
+```{r sex as factor, echo=F}
+# sex as factor
+db$f.sex <- as.factor(db$sex)
+levels(db$f.sex) <- c("female", "male") # relevel sex
+```
+
+Differences in mean horn length between male and female:
+
+```{r}
+(horn_sex <- with(db, tapply(horn, f.sex, mean)))
+diff(horn_sex)
+```
+
+Here we wanted to see how horn lengths differ over the years between the sexes.
+
+```{r horn length year sd}
+# change over the years
+(horn_sexyear <- with(db, tapply(horn, list(year, f.sex), mean)))
+apply(horn_sexyear, 2, summary)
+apply(horn_sexyear, 2, sd)
+# males have less variance in mean horn length over the years
+boxplot(horn_sexyear, ylab="Hornlength [mm]", main="Mean Hornlength between years", xlab="sex")
+```
+There is some variability over the years that suggests using year as random effect in our model later on. However, males have less variability in horn lenghts over the years than females.
+
+```{r horn length sd}
+with(db, tapply(horn, f.sex, sd))
+
+boxplot(horn~f.sex, data = db, main= "Hornlength ",ylab= "length [mm]", xlab= "sex")
+```
+However, males show a higher variability of horn length in general.
 
