@@ -1,0 +1,37 @@
+---
+title: "randomForest"
+output: html_document
+---
+
+## RandomForset analyses 
+```{r,warning=FALSE,message=FALSE}
+library(randomForest)
+```
+Randomforest analysis of selected variables
+```{r,message=FALSE, warnings=FALSE}
+both_sexes<-randomForest(horn ~ (sex) + (x.council) + (y.council) + (Jday) + (q_media) + (q_min) + (weight) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new) + (ndvi.summer1) + (ndvi.summer2) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=db)
+varImpPlot(both_sexes)
+```
+
+Sex, weight and the day of hunting (Julianday) are by far the most relevant variables.
+
+For a better understanding of the importance of the less relevant factors the variables weight and Julianday are ommitted in the following randomforest analysis and analysis are performed sex separated.
+
+Randomforest for male chamois and plot of variable importance:
+
+```{r}
+
+
+male<-randomForest(horn ~(x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new) + (ndvi.summer1) + (ndvi.summer2) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=male_db)
+varImpPlot(male)
+```
+
+RandomForest for female chamois and plot of variable importance:
+
+```{r}
+female<-randomForest(horn ~(x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new) + (ndvi.summer1) + (ndvi.summer2) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=female_db)
+varImpPlot(female)
+```
+
+
+After sex, weight and Julianday the NDVI of summer and May, elevation (q_edia) and pecentage of open area have a high rank in the importance of variables. The rank of the variables differs in the male and female ranfomForest importance analyses.

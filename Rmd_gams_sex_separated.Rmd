@@ -13,6 +13,7 @@ Loading the mgcv library
 
 ```{r,message = FALSE}
 library(mgcv)
+
 ```
 Loading the database and creating separated datasets for male and female chamois respectively
 ```{r}
@@ -201,7 +202,7 @@ F_x1.1 <-  gam(horn ~
 ```{r}
 AIC(F_x1.1)
 ```
-Checking model
+Checking the model
 
 ```{r}
 gam.check(F_x1.1)
