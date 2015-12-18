@@ -23,7 +23,7 @@ male_db<-subset(db,sex ==  2)
 female_db<-subset(db,sex == 1)
 
 ```
-Building different gams based on gam "c5" with a set of variables which had been found as being best explaining the horngrowth by using a wide range of explaining variables.
+We bulit different gams which were all based on a basic gam with a set of a wide range of explaining variables.
 
 Randomforest had revealed weight, julianday, elevation (q_media), ndvi summer, ndvi may and percentage of open area as relevant factors. Ndvi may, ndvi summer, elevation and percentage of open area are not included in the model so far. Different models which include one of the additional environmental variables could reveal by AIC analysis different importance of the variables for the different sexes.
 
