@@ -9,7 +9,7 @@ output:
     toc: yes
 ---
 
-```{r echo=F, message=FALSE}
+```{r echo=F, include=FALSE}
 library(knitr)
 library(mgcv)
 library(Hmisc)
@@ -31,6 +31,10 @@ We have received a data set of 2679 observations from hunted animals of the spec
 
 
 Also included in the data set is the council where the animal was shot, which in turn belongs to one of five administrative areas. Furthermore, there are environmental data, aggregated at either council or area level.
+
+Many of the data refer to specific time span of the life of the yealing chamois.
+
+<img src="imgs/zeitleisteaus.jpg" width="1000">
 
 ## Description of Environmental Data
 
@@ -123,8 +127,6 @@ drops <- c(
 # drop unnecessary columns
 db_merge <- db_merge[, !names(db_merge) %in% drops]
 
-# order the dataframe by id
-db_merge <- db_merge[order(db_merge$id), ]
 ```
 
 These are the columns present in the new merged data.
@@ -245,11 +247,102 @@ summary(db$tautumn.min)
 # No NAs!
 ```
 
+```{r include=FALSE}
+# aspect is an unreliable predictor since its not equally distributed
+# include aspect as factr: facing south and facing north
+db$aspect <- as.factor(ifelse(db$asp < 90 | db$asp > 270, "N", "S"))
+
+# transform sex to factors
+db$f.sex <- as.factor(db$sex)
+levels(db$f.sex) <- c("female", "male") # relevel sex
+
+#transform substrate to factors
+db$f.substrate <- as.factor(db$substrate)
+levels(db$f.substrate) <- c("sili", "calc")
+
+#factorize year
+db$f.year <- as.factor(db$year)
+
+# factorize council code
+db$f.council_cod <- as.factor(db$council_cod)
+
+
+#calculate log ndvi slope
+head(sort(unique(db$ndvi.slop1)))
+db$log.ndvi.slop1 <- log(db$ndvi.slop1 + 0.5*0.001)
+db$log.ndvi.slop2 <- log(db$ndvi.slop2)
+
+# add q_range to db
+db$q_range <- db$q_max - db$q_min
+
+
+# add pca for ndvi
+# attach(db)
+# may ndvis
+pca1 <- with(db, prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T))
+summary(pca1)
+# two PCS explain enough variance
+round(pca1$rotation, 2)
+# biplot(pca1)
+
+# all ndvis
+pca2 <- with(db, prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T))
+summary(pca2)
+# two are enough
+# biplot(pca2)
+
+# summer ndvis
+pca3 <- with(db, prcomp(cbind(ndvi.summer1, ndvi.summer2), scale=T))
+summary(pca3)
+# pc1 is enough
+# biplot(pca3)
+
+# ndvi year one and ndvi year two seperated
+pca4.1 <- with(db, prcomp(cbind(ndvi.may1.new, ndvi.summer1), scale=T))
+pca4.2 <- with(db, prcomp(cbind(ndvi.may2.new, ndvi.summer2), scale=T))
+
+summary(pca4.1)
+summary(pca4.2)
+# for both, pc1 is enough
+cor(pca4.1$x[, 1], pca4.2$x[, 1])
+# cannot use both, highly correlated
+
+
+# PCA of NDVI may year 1 and 2
+db$ndvi.m1m2.pc1 <- pca1$x[, 1]
+db$ndvi.m1m2.pc2 <- pca1$x[, 2]
+
+# PCA of NDVI of summer year 1 and 2 and may year 1 and 2
+db$ndvi.m1m2s1s2.pc1 <- pca2$x[, 1]
+
+# PCA of NDVI of summer year 1 and 2
+db$ndvi.s1s2.pc1 <-pca3$x[, 1]
+
+# PCA of NDVI may1 and summer 1
+db$ndvi.m1s1.pc1 <- pca4.1$x[, 1]
+# PCA of NDVI may2 and summer 2
+db$ndvi.m2s2.pc1 <- pca4.2$x[, 1]
+
+
+
+
+
+
+# drop weight > 25kg
+# yearlings are NOT that heavy!
+nrow(subset(db, weight > 25))
+db <- subset(db, weight < 25)
+
+
+save(db, file="db.RData")
+
+```
+
 
 We now have a data set with `r nrow(db)` observations and `r ncol(db) - 1` variables as potential predictors.
 
 
-# Methods and Results
+# Methods and Material
 
 ## Data Exploration
 
@@ -317,9 +410,10 @@ There is some variability over the years that suggests using year as random effe
 
 ```{r}
 boxplot(horn~year, dat=db, main = "Hornlength", xlab="Year", ylab= "Hornlength")
-# in different years the distribution of hornlength is different
+
 ```
 
+In different years the distribution of hornlength is different. The models need a random effect for year.
 
 ### Weight
 
@@ -432,18 +526,20 @@ summary(Julgam1)
 
 
 
+#### effect of Julian day on horn length  male & female
 
-## effect of Julian day on horn length  male & female #########################
+Loess of horn length depending on Julianday for fmale and female:
 
-#Loess_horn_Julianday_male------------------------------------------------------------
+```{r}
+male <- subset(db, sex == 2)
+female <- subset(db, sex == 1)
+
 fmLoess_Jday_m <- loess(male$horn~male$Jday,family="gaussian",span=0.8)
 newday_m <- seq(from=min(male$Jday), to=max(male$Jday),by=1)
 pred_Horn_m <- predict(fmLoess_Jday_m, newday_m, se=TRUE)
-plot(horn~Jday, main ="Loess: Horn~Julianday",ylab="Hornlength [mm]",xlab="Day of the year",pch=1)
+plot(male$horn~male$Jday, main ="Loess: Horn~Julianday",ylab="Hornlength [mm]",xlab="Day of the year",pch=1)
 lines(pred_Horn_m$fit~newday_m,col="blue", lwd=2)
 
-
-#Loess horn_Julianday_Female -------------------------------------------------------
 fmLoess_Jday_f <- loess(female$horn~female$Jday,family="gaussian",span=0.8)
 newday_f <- seq(from=min(female$Jday), to=max(female$Jday),by=1)
 pred_Horn_f <- predict(fmLoess_Jday_f, newday_f, se=TRUE)
@@ -452,19 +548,123 @@ lines(pred_Horn_f$fit~newday_f,col="red", lwd=2, lty=2)
 abline(h=140,col="darkgreen",lwd=2,lty=3)
 abline(h=160,col="darkgreen",lwd=2,lty=3)
 legend("topright",lwd=c(2,2,2),lty=c(1,2,3),col=c("blue","red","darkgreen"),legend=c("male","female", "fix value 140 mm & 160 mm"),cex=0.8)
-# Loess regression shows decreasing hornlength at the beginning of the hunting season and increasing hornlength after day 275
+```
 
+Loess regression shows a decreasing hornlength at the beginning of the hunting season and increasing hornlength after day 275
+
+3D-plot of horn length depending on weight and Jday:
+
+```{r}
 Julgam4<-gam(horn~s(weight)+s(Jday),data=db)
 vis.gam(Julgam4,theta=60,main="Hornlength ~ weight+Jday",zlab="Hornlength")
 
-# Gam with Interaction
-Julgam5<-gam(horn~s(weight,Jday),data=db)
-vis.gam(Julgam5,theta=60,main="Hornlength ~ (weight, Jday)",zlab="Hornlength")
-# the decrease could be effect of hunting selection but the effect has to be further invesigated including random effects of council.
+```
+
+
 
 
 
 ### Elevation
+
+
+
+```{r}
+hist (db$q_media,main= "Elevation",freq=FALSE, xlab="elevation a.s.l. [m]")
+lines(density(db$q_media), col="purple", lwd=3)
+
+```
+
+The samples are not well distributed.
+
+
+Analyse horn denpending on elevation
+
+```{r}
+attach(db)
+
+tapply(horn,area_cod,mean)    
+tapply(q_media,area_cod,mean)
+
+
+mean (horn)# 142.1995
+sd(horn)#20.58488
+
+
+detach(db)
+```
+
+Animals hunted  at the lowest elevation area have the biggest mean horn length.
+Animals originating from the highest area have the smalest average horn length. There is a difference of 20.7015 mm between this groups. Thist span is 29% of the (overall) average horn length. The standard deviation of horn length is 20.6 mm
+
+LOESS Horn Elevation
+
+```{r}
+
+fmLoess_HE_m <- loess(male$horn~male$q_media,family="gaussian",span=0.75)
+newEle_m <- seq(from=min(male$q_media), to=max(male$q_media),by=1)
+pred_H_m <- predict(fmLoess_HE_m, newEle_m, se=TRUE)
+plot(db$horn~db$q_media, main ="Loess Regression: Horn~Elevation",ylab="horn [mm]",xlab="Elevation [m a.s.l.]",pch=1)
+lines(pred_H_m$fit~newEle_m,col="blue", lwd=2)
+
+
+fmLoess_HE_f <- loess(female$horn~female$q_media,family="gaussian",span=0.75)
+newEle_f <- seq(from=min(female$q_media), to=max(female$q_media),by=1)
+pred_H_f <- predict(fmLoess_HE_f, newEle_f, se=TRUE)
+
+lines(pred_H_f$fit~newEle_f,col="red", lwd=2,lty =2)
+legend("topright",lwd=c(2,2),lty=c(1,2),col=c("blue","red"),legend=c("male","female"))
+
+```
+
+The visualisition of LOESS regression shows decreasing horn length with the increase of elevation. Futhermore, it suggests that this decrease is in female stronger.  
+
+combined plot of two lines for glm male and female with fixed further variables
+
+```{r}
+attach(db)
+
+male_db <- male
+female_db <- female
+
+Glmhorn_m<-glm(horn ~ q_media + weight + Jday + ndvi.summer1 + Perc.area.aperta, data=male_db, family="gaussian")
+summary(Glmhorn_m)#Estimate  q_media  -0.008671
+
+
+Glmhorn_f<-glm(horn~q_media+weight+Jday+ndvi.summer1+Perc.area.aperta,data=female_db,family="gaussian")
+summary(Glmhorn_f)#Estimate  q_media  --0.009838
+
+
+
+
+
+
+newele_f<- seq(from=min(female_db$q_media), to=max(female_db$q_media), len=100)
+
+Preds_f<-predict(Glmhorn_f, newdata=data.frame("q_media"=newele_f, "weight"=median(female_db$weight), "Jday"=median(female_db$Jday), "ndvi.summer1"=median(female_db$ndvi.summer1), "Perc.area.aperta"=median(female_db$Perc.area.aperta)),se=TRUE)
+
+newele_m<- seq(from=min(male_db$q_media), to=max(male_db$q_media), len=100)
+
+Preds_m<-predict(Glmhorn_m, newdata=data.frame("q_media"=newele_m, "weight"=median(male_db$weight), "Jday"=median(male_db$Jday), "ndvi.summer1"=median(male_db$ndvi.summer1), "Perc.area.aperta"=median(male_db$Perc.area.aperta)), se=TRUE)
+
+
+with(db, plot(horn ~ q_media, main= "LM Hornlength", xlab="Elevation", ylab="Hornlenght [mm]"))
+lines(Preds_f$fit~newele_f, col="red", lwd =2, lty =2)
+lines(Preds_m$fit~newele_m, col="blue",lwd =2, lty =1)
+legend("topright",lwd=c(2,2,2,2),lty= c(1,2,3,3),col=c("blue","red","blue","red"),legend=c("male","female","conf. male"," conf.female"))
+text(c(900,900),c(122,180), labels =c("-0.009838", "-0.008671"), col= c("red","blue"))
+lines(newele_m,Preds_m$fit+1.96*Preds_m$se.fit,col="blue",lwd =2, lty =3)
+lines(newele_m,Preds_m$fit-1.96*Preds_m$se.fit,col="blue",lwd =2, lty =3)
+lines(newele_f,Preds_f$fit+1.96*Preds_f$se.fit,col="red",lwd =2, lty =3)
+lines(newele_f,Preds_f$fit-1.96*Preds_f$se.fit,col="red",lwd =2, lty =3)
+
+detach(db)
+```
+
+With increasing elevation female hornlength decreases slightly more than in male chamois.
+But the difference is small regarding the confidence intervall. This linear model does not include random effects.The suggested effect of elevation has to be further analyised.
+
+
+
 
 
 
@@ -510,6 +710,383 @@ with(db, tapply(horn, list(council_cod, year), length))
 Also consistently over the years, council 15 has the most kills per year.
 
 
+## Random Forest analyses
+
+```{r,include=FALSE}
+library(randomForest)
+```
+
+For analysing the importance of variabels we used Randomforest.
 
 
+
+
+```{r,message=FALSE, warnings=FALSE}
+both_sexes<-randomForest(horn ~ (sex) + (x.council) + (y.council) + (Jday) + (q_media) + (q_min) + (weight) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new) + (ndvi.summer1) + (ndvi.summer2) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=db)
+varImpPlot(both_sexes)
+```
+
+Sex, weight and the day of hunting (Julianday) are by far the most relevant variables.
+
+For a better understanding of the importance of the less relevant factors the variables weight and Julianday are ommitted in the following randomforest analysis and analysis are performed sex separated.
+
+Randomforest for male chamois and plot of variable importance:
+
+```{r}
+
+
+male<-randomForest(horn ~(x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new) + (ndvi.summer1) + (ndvi.summer2) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=male_db)
+varImpPlot(male)
+```
+
+RandomForest for female chamois and plot of variable importance:
+
+```{r}
+female<-randomForest(horn ~(x.council) + (y.council) + (q_media) + (q_min) + f.substrate + (density) + (ndvi.slop1) + (ndvi.maxincr1) + (ndvi.may1.new) + (ndvi.summer1) + (ndvi.summer2) + (ndvi.slop2) + (ndvi.maxincr2) + (Perc.area.aperta) + (snow_winter1) + (aspect) + (r_newsummer1) + (snow_winter2) + (r_spring2) + (r_newsummer2) + (twinter.mean1) + (tspring1.mean) + (tsummer1.mean) + (twinter.mean2) + (tspring2.mean) + (tsummer2.mean), ntree=500, data=female_db)
+varImpPlot(female)
+```
+
+
+After sex, weight and Julianday the NDVI of summer and May, elevation (q_edia) and pecentage of open area have a high rank in the importance of variables. The rank of the variables differs in the male and female ranfomForest importance analyses.
+
+## Collineatity Check
+
+First, we test for correlation inside of logical groups of predictors. There we assume that a correlation coefficient lower than 0.7 for Pearsons r are not collinear. On the other hand, we use a varclus plot to indicate collinear clusters. The threshhold here is 0.5 for spearmans rho².
+
+
+
+
+```{r,echo=FALSE, include=FALSE}
+load("db.RData")
+library(Hmisc)
+library(psych)
+attach(db)
+
+```
+
+### collinearity in elevation data
+
+```{r, echo=FALSE}
+pairs.panels(cbind(q_media, q_min, q_range, q_max))
+```
+
+Here only the existence of q_max is not good.
+
+Then we think about transforming elevation relative to mean:
+
+```{r, echo=FALSE}
+q_relmin <- q_min - q_media
+q_relmax <- q_max - q_media
+pairs.panels(cbind(q_relmin, q_media, q_relmax))
+```
+
+This approach is worse :(
+
+
+Conclusion: q_media, q_min and q_range are not collinear and can stay as pedictors for elevation.
+
+### Collinearity of NAO and NAO with other climate data
+
+```{r, echo = FALSE}
+pairs.panels(cbind(nao_a1, nao_a2, nao_d, nao_f, nao_j, nao_m, nao_w))
+```
+
+NAO for months is correlated; NAO for winter, year1 and year2 could be useful.
+
+How is the correlation of nao with temperature and precipitation?
+
+```{r, echo=FALSE}
+
+
+Tcor<- data.frame(twinter.mean2 = cor(db$nao_w, db$twinter.mean2), twinter.min2 = cor(db$nao_w, db$twinter.min2), twinter.max = cor(db$nao_w, db$twinter.max2), snow_winter2 = cor(db$nao_w, db$snow_winter2))
+row.names(Tcor) <- "nao_w"
+Tcor
+
+
+```
+
+NAO is correlated with minimum winter temperature and also with snow depth.
+
+
+### Variable Clustering of all climate data
+
+```{r, echo=FALSE}
+f1 <- formula(horn ~ nao_a1 + nao_a2 + nao_w + r_apr_mag_1 + r_giu_lug_1 + r_ago_set_1 + r_apr_mag_2 + r_giu_lug_2 + r_ago_set_2 + r_spring1 + r_spring2 + r_newsummer1 + r_newsummer2 + r_autumn + snow_winter1 + snow_winter2 + Snow_cover_winter1 + Snow_cover_winter2 + twinter.min1 + twinter.max1 + twinter.mean1 + twinter.min2 + twinter.max2 + twinter.mean2 + tautumn.min + tautumn.max + tautumn.mean + tspring1.min + tspring1.max + tspring1.mean + tspring2.min + tspring2.max + tspring2.mean + tsummer1.min + tsummer1.max + tsummer1.mean + tsummer2.min + tsummer2.max + tsummer2.mean)
+
+plot(varclus(f1, data=db))
+abline(h=0.5, col="red")
+```
+
+A lot of climate predictors are highly collinear. some of them are not logically interpretable like r_spring1 with snow_cover_winter2.
+And as there are too much information, how can we begin to simplify?
+Another consideration is, since it can have a huge change of appearance after removing some variables, did VarClus really reflect all the relationships in an appropriate way?
+
+
+After this small excursion to VarClus, we decide standing on the former approach: first check for correlation inside smaller groups.
+
+### Collinearity in precipitation data
+
+Rain inside two years seperately:
+
+```{r, echo=FALSE}
+prec1 <- cbind(r_apr_mag_1, r_giu_lug_1, r_ago_set_1, r_spring1, r_newsummer1, r_autumn)
+prec2 <- cbind(r_apr_mag_2, r_giu_lug_2, r_ago_set_2, r_spring2, r_newsummer2)
+pairs.panels(prec1, main="precipitation 1")
+pairs.panels(prec2, main="precipitation 2")
+```
+
+
+
+Bimonthly precipitation for both years:
+
+```{r, echo=FALSE}
+prec_all <- cbind(r_apr_mag_1, r_giu_lug_1, r_ago_set_1, r_apr_mag_2, r_giu_lug_2, r_ago_set_2)
+pairs.panels(prec_all)
+```
+
+
+They are all good except for r_ago_set and r_giu_lug2. Pick one, but test for both.
+
+
+
+What about rain and snow inside this two years?
+
+```{r, echo=FALSE}
+pairs.panels(cbind(prec_all, snow_winter1, snow_winter2))
+pairs.panels(cbind(prec_all, Snow_cover_winter1, Snow_cover_winter2))
+```
+
+
+Snow_cover_winter is not correlated with rain data, but by snow_winter is the case.
+
+Approach: either bimonthly data or seasonal data
+- high correlation between r_summer1 and r_autumn1
+- bimonthly data is uncorrelated
+-> so bimonthly precipitaion data might be better
+
+### Collinearity in temperature data
+
+- First Winter:
+
+```{r, echo=FALSE}
+winter1 <- cbind(horn, twinter.min1, twinter.mean1, twinter.max1)
+pairs.panels(winter1, main = "Winter1")
+```
+
+ok
+
+- Second winter:
+
+```{r, echo=FALSE}
+winter2 <- cbind(horn, twinter.min2, twinter.mean2, twinter.max2)
+pairs.panels(winter2, main = "Winter2")
+```
+
+ok
+
+- First spring:
+
+```{r, echo=FALSE}
+spring1 <- cbind(horn, tspring1.min, tspring1.mean, tspring1.max)
+pairs.panels(spring1, main = "Spring1")
+```
+
+Here, everything can stay.
+
+- Second spring
+
+```{r, echo=FALSE}
+spring2 <- cbind(horn, tspring2.min, tspring2.mean, tspring2.max)
+pairs.panels(spring2, main = "Spring2")
+```
+
+Here, everything can stay.
+
+- First summer:
+
+```{r, echo=FALSE}
+summer1 <- cbind(horn, tsummer1.min, tsummer1.mean, tsummer1.max)
+pairs.panels(summer1, main = "summer1")
+```
+
+"tsummer1_mean" is highly correlated with both max and min. All three can not be used simultaneously.
+
+- Second summer:
+
+```{r,echo=FALSE}
+summer2 <- cbind(horn, tsummer2.min, tsummer2.mean, tsummer2.max)
+pairs.panels(summer2, main = "summer2")
+```
+
+Here, everything can stay.
+
+- Autumn:
+
+```{r, echo=FALSE}
+autumn <- cbind(horn, tautumn.min, tautumn.mean, tautumn.max)
+pairs.panels(autumn, main = "Autumn")
+```
+
+"tautumn.mean" with tautumn.max at the threshold
+
+
+
+
+Conclusion so far:
+
+- predictor for snow: snow_cover_winter
+
+- predictor for Temperature:
+       twinter.min1, twinter.mean1, twinter.max1
+       twinter.min2, twinter.mean2, twinter.max2
+       tspring1.min, tspring1.mean, tspring1.max
+       tspring2.min, tspring2.mean, tspring2.max
+       tsummer1.min, tsummer1.max
+       tsummer2.min, tsummer2.mean, tsummer2.max
+       tautumn.min, tautumn.mean, tautumn.max, but at threshold
+
+- predictor for precipitation:
+       r_apr_mag_1, r_giu_lug_1, r_apr_mag_2, r_ago_set_2
+       either r_ago_set_1 or r_giu_lug_2
+
+### Collnearity in NDVI
+
+- NDVI in the first year:
+
+```{r, echo=FALSE}
+ndvi1 <- cbind(horn, ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
+ndvi2 <- cbind(horn, ndvi.maxincr2, ndvi.may2.new, ndvi.slop2, ndvi.summer2)
+
+ndvi1 <- cbind(horn, ndvi.maxincr1, ndvi.may1.new, log.ndvi.slop1, ndvi.summer1)
+ndvi2 <- cbind(horn, ndvi.maxincr2, ndvi.may2.new, log.ndvi.slop2, ndvi.summer2)
+pairs.panels(ndvi1, main = "NDVI1", method = "pearson")
+
+```
+
+As expected, NDVI in may and summer are highly correlated. Pick One.
+
+However, ndvi.slop is heavily skewed towards 0.
+
+```{r}
+summary(ndvi.slop1)
+sum(ndvi.slop1 == 0) # only 1!
+sum(ndvi.slop1 < 0.1) # but more then 2000 are smaller than 0.1
+sum(ndvi.slop1 > 0.1)
+
+```
+Should we log transform?
+
+```{r}
+log.ndvi.slop1 <- log(ndvi.slop1 + 0.5*0.001)
+hist(log.ndvi.slop1)
+summary(log.ndvi.slop1)
+
+```
+ 
+
+- NDVI in the second year:
+
+```{r, echo=FALSE}
+pairs.panels(ndvi2, main = "NDVI2")
+
+```
+
+Same result for the second year: May and summer are highly correlated.
+
+```{r}
+summary(ndvi.slop2) # no zeros
+log.ndvi.slop2 <- log(ndvi.slop2)
+hist(log.ndvi.slop2)
+```
+
+- Both years together:
+
+```{r, echo=FALSE}
+ndvib <- cbind(ndvi.maxincr1, ndvi.may1.new, log.ndvi.slop1, ndvi.maxincr2, ndvi.may2.new, log.ndvi.slop2)
+pairs.panels(ndvib, main = "both NDVI")
+```
+
+
+We then introduce the PCA method here, trying to deal the collinearity problem in NDVI data.
+
+
+- PCA_may_ndvis:
+```{r}
+pca1 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T)
+summary(pca1)
+
+```
+
+Two PCs explain enough variance
+
+```{r}
+round(pca1$rotation, 2)
+biplot(pca1)
+
+```
+
+
+
+- PCA_all_ndvis:
+
+```{r}
+pca2 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T)
+summary(pca2)
+
+```
+
+The first two PCs are enough.
+
+```{r}
+biplot(pca2)
+```
+
+
+
+- PCA_summer ndvis:
+
+```{r}
+pca3 <- prcomp(cbind(ndvi.summer1, ndvi.summer2), scale=T)
+summary(pca3)
+
+```
+
+The first PC part is enough.
+
+```{r}
+biplot(pca3)
+```
+
+
+
+
+- ndvi_year_one and ndvi_year_two seperated:
+
+```{r}
+pca4.1 <- prcomp(cbind(ndvi.may1.new, ndvi.summer1), scale=T)
+pca4.2 <- prcomp(cbind(ndvi.may2.new, ndvi.summer2), scale=T)
+
+summary(pca4.1)
+summary(pca4.2)
+
+```
+
+For both, the first PC part is enough.
+
+```{r}
+cor(pca4.1$x[, 1], pca4.2$x[, 1])
+
+```
+
+
+Cannot use both at the same time, highly correlated.
+
+
+### Conclusion in collinnearity
+
+In oder to get a global view of collinearity, we draw the picture below:
+
+<img src="imgs/collinearity catalog2.png" width="1000">
+
+We try to put the variable which have collinearity problem at the same level, so they should become the alternative for each other in a model components selection route, and then wouldn't bother each other. But since there is multi-collinearity we have to pick them out from the potential model which should include maximum possible variables already. According to this picture we have more than 9000 possible variable combinations, and they all need one more step collinearity check inside it. On the other hand when one of the collinear predictors explains something than the other collinear predictor would too. So it is also unnecessary to try all the possible combinations. 
 
