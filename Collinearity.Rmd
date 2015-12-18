@@ -1,0 +1,354 @@
+---
+title: "Collinearity"
+output: 
+  html_document: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+# Collineatity Check
+
+First, we test for correlation inside of logical groups of predictors. There we assume that a correlation coefficient lower than 0.7 for Pearsons r are not collinear. On the other hand, we use a varclus plot to indicate collinear clusters. The threshhold here is 0.5 for spearmans rho²
+
+
+
+
+```{r,echo=FALSE, include=FALSE}
+load("db.RData")
+library(Hmisc)
+library(psych)
+attach(db)
+
+```
+
+## collinearity in elevation data
+
+```{r, echo=FALSE}
+pairs.panels(cbind(q_media, q_min, q_range, q_max))
+```
+
+Here only the existence of q_max is not good
+
+Then we think about transforming elevation relative to mean:
+
+```{r, echo=FALSE}
+q_relmin <- q_min - q_media
+q_relmax <- q_max - q_media
+pairs.panels(cbind(q_relmin, q_media, q_relmax))
+```
+
+This approach is worse :(
+
+
+Conclusion: q_media, q_min and q_range can stay as pedictors for elevation
+
+## Collinearity of NAO and NAO with other climate data
+
+```{r, echo = FALSE}
+pairs.panels(cbind(nao_a1, nao_a2, nao_d, nao_f, nao_j, nao_m, nao_w))
+```
+
+NAO for months is correlated; NAO for winter, year1 and year2 could be useful
+
+How is the correlation of nao with temperature and precipitation?
+
+```{r, echo=FALSE}
+
+
+Tcor<- data.frame(twinter.mean2 = cor(db$nao_w, db$twinter.mean2), twinter.min2 = cor(db$nao_w, db$twinter.min2), twinter.max = cor(db$nao_w, db$twinter.max2), snow_winter2 = cor(db$nao_w, db$snow_winter2))
+row.names(Tcor) <- "nao_w"
+Tcor
+
+
+```
+
+nao is correlated with minimum winter temps and also with snow depth
+
+
+## Variable Clustering of all climate data
+
+```{r, echo=FALSE}
+f1 <- formula(horn ~ nao_a1 + nao_a2 + nao_w + r_apr_mag_1 + r_giu_lug_1 + r_ago_set_1 + r_apr_mag_2 + r_giu_lug_2 + r_ago_set_2 + r_spring1 + r_spring2 + r_newsummer1 + r_newsummer2 + r_autumn + snow_winter1 + snow_winter2 + Snow_cover_winter1 + Snow_cover_winter2 + twinter.min1 + twinter.max1 + twinter.mean1 + twinter.min2 + twinter.max2 + twinter.mean2 + tautumn.min + tautumn.max + tautumn.mean + tspring1.min + tspring1.max + tspring1.mean + tspring2.min + tspring2.max + tspring2.mean + tsummer1.min + tsummer1.max + tsummer1.mean + tsummer2.min + tsummer2.max + tsummer2.mean)
+
+plot(varclus(f1, data=db))
+abline(h=0.5, col="red")
+```
+
+A lot of climate predictors are highly collinear. some of them are not logically interpretable like r_spring1 with snow_cover_winter2.
+And as there are too much information, how can we begin to simplify?
+Another consideration is, since it can have a huge change of appearance after removing some variables, did VarClus really reflect all the relationships in an appropriate way?
+
+
+After this small excursion to VarClus, we decide standing on the former approach: first check for correlation inside smaller groups
+
+## Collinearity in precipitation data
+
+rain inside two years seperately:
+
+```{r, echo=FALSE}
+prec1 <- cbind(r_apr_mag_1, r_giu_lug_1, r_ago_set_1, r_spring1, r_newsummer1, r_autumn)
+prec2 <- cbind(r_apr_mag_2, r_giu_lug_2, r_ago_set_2, r_spring2, r_newsummer2)
+pairs.panels(prec1, main="precipitation 1")
+pairs.panels(prec2, main="precipitation 2")
+```
+
+
+
+bimonthly precipitation for both years:
+
+```{r, echo=FALSE}
+prec_all <- cbind(r_apr_mag_1, r_giu_lug_1, r_ago_set_1, r_apr_mag_2, r_giu_lug_2, r_ago_set_2)
+pairs.panels(prec_all)
+```
+
+
+They are all good except for r_ago_set and r_giu_lug2. Pick one, but test for both
+
+
+
+what about rain and snow inside this two years?
+
+```{r, echo=FALSE}
+pairs.panels(cbind(prec_all, snow_winter1, snow_winter2))
+pairs.panels(cbind(prec_all, Snow_cover_winter1, Snow_cover_winter2))
+```
+
+
+Snow_cover_winter is not correlated with rain data, but by snow_winter is the case.
+
+approach: either bimonthly data or seasonal data
+- high correlation between r_summer1 and r_autumn1
+- bimonthly data is uncorrelated
+-> so bimonthly precipitaion data might be better
+
+## Collinearity in temperature data
+
+- First Winter:
+
+```{r, echo=FALSE}
+winter1 <- cbind(horn, twinter.min1, twinter.mean1, twinter.max1)
+pairs.panels(winter1, main = "Winter1")
+```
+
+ok
+
+- Second winter:
+
+```{r, echo=FALSE}
+winter2 <- cbind(horn, twinter.min2, twinter.mean2, twinter.max2)
+pairs.panels(winter2, main = "Winter2")
+```
+
+ok
+
+- First spring:
+
+```{r, echo=FALSE}
+spring1 <- cbind(horn, tspring1.min, tspring1.mean, tspring1.max)
+pairs.panels(spring1, main = "Spring1")
+```
+
+ here, everything can stay
+
+- Second spring
+
+```{r, echo=FALSE}
+spring2 <- cbind(horn, tspring2.min, tspring2.mean, tspring2.max)
+pairs.panels(spring2, main = "Spring2")
+```
+
+here, everything can stay
+
+- First summer:
+
+```{r, echo=FALSE}
+summer1 <- cbind(horn, tsummer1.min, tsummer1.mean, tsummer1.max)
+pairs.panels(summer1, main = "summer1")
+```
+
+tsummer1_mean is highly correlated with both max and min. It should not be used
+
+- Second summer:
+
+```{r,echo=FALSE}
+summer2 <- cbind(horn, tsummer2.min, tsummer2.mean, tsummer2.max)
+pairs.panels(summer2, main = "summer2")
+```
+
+here, everything can stay
+
+- Autumn:
+
+```{r, echo=FALSE}
+autumn <- cbind(horn, tautumn.min, tautumn.mean, tautumn.max)
+pairs.panels(autumn, main = "Autumn")
+```
+
+tautumn.mean with tautumn.max at the threshold
+
+
+
+
+conclusion so far:
+
+- predictor for snow: snow_cover_winter
+
+- predictor for Temperature:
+       twinter.min1, twinter.mean1, twinter.max1
+       twinter.min2, twinter.mean2, twinter.max2
+       tspring1.min, tspring1.mean, tspring1.max
+       tspring2.min, tspring2.mean, tspring2.max
+       tsummer1.min, tsummer1.max
+       tsummer2.min, tsummer2.mean, tsummer2.max
+       tautumn.min, tautumn.mean, tautumn.max, but at threshold
+
+- predictor for precipitation:
+       r_apr_mag_1, r_giu_lug_1, r_apr_mag_2, r_ago_set_2
+       either r_ago_set_1 or r_giu_lug_2
+
+## Collnearity in NDVI
+
+- NDVI in first year:
+
+```{r, echo=FALSE}
+ndvi1 <- cbind(horn, ndvi.maxincr1, ndvi.may1.new, ndvi.slop1, ndvi.summer1)
+ndvi2 <- cbind(horn, ndvi.maxincr2, ndvi.may2.new, ndvi.slop2, ndvi.summer2)
+
+ndvi1 <- cbind(horn, ndvi.maxincr1, ndvi.may1.new, log.ndvi.slop1, ndvi.summer1)
+ndvi2 <- cbind(horn, ndvi.maxincr2, ndvi.may2.new, log.ndvi.slop2, ndvi.summer2)
+pairs.panels(ndvi1, main = "NDVI1", method = "pearson")
+
+```
+
+as expected, NDVI in may and summer are highly correlated. Pick One.
+
+however, ndvi.slop is heavily skewed towards 0
+
+```{r}
+summary(ndvi.slop1)
+sum(ndvi.slop1 == 0) # only 1!
+sum(ndvi.slop1 < 0.1) # but more then 2000 are smaller than 0.1
+sum(ndvi.slop1 > 0.1)
+
+```
+
+log transform?
+
+```{r}
+log.ndvi.slop1 <- log(ndvi.slop1 + 0.5*0.001)
+hist(log.ndvi.slop1)
+summary(log.ndvi.slop1)
+
+```
+ 
+
+- NDVI in second year:
+
+```{r, echo=FALSE}
+pairs.panels(ndvi2, main = "NDVI2")
+
+```
+
+same result for the second year: may and summer highly correlated
+
+```{r}
+summary(ndvi.slop2) # no zeros
+log.ndvi.slop2 <- log(ndvi.slop2)
+hist(log.ndvi.slop2)
+```
+
+- both year together:
+
+```{r, echo=FALSE}
+ndvib <- cbind(ndvi.maxincr1, ndvi.may1.new, log.ndvi.slop1, ndvi.maxincr2, ndvi.may2.new, log.ndvi.slop2)
+pairs.panels(ndvib, main = "both NDVI")
+```
+
+
+We then introduce the PCA method here, trying to deal the collinearity problem in NDVI data
+
+
+- PCA_may_ndvis:
+```{r}
+pca1 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new), scale=T)
+summary(pca1)
+
+```
+
+two PCs explain enough variance
+
+```{r}
+round(pca1$rotation, 2)
+biplot(pca1)
+
+```
+
+
+
+- PCA_all_ndvis:
+
+```{r}
+pca2 <- prcomp(cbind(ndvi.may1.new, ndvi.may2.new, ndvi.summer1, ndvi.summer2), scale=T)
+summary(pca2)
+
+```
+
+two are enough
+
+```{r}
+biplot(pca2)
+```
+
+
+
+- PCA_summer ndvis:
+
+```{r}
+pca3 <- prcomp(cbind(ndvi.summer1, ndvi.summer2), scale=T)
+summary(pca3)
+
+```
+
+the first pc part is enough
+
+```{r}
+biplot(pca3)
+```
+
+
+
+
+- ndvi_year_one and ndvi_year_two seperated:
+
+```{r}
+pca4.1 <- prcomp(cbind(ndvi.may1.new, ndvi.summer1), scale=T)
+pca4.2 <- prcomp(cbind(ndvi.may2.new, ndvi.summer2), scale=T)
+
+summary(pca4.1)
+summary(pca4.2)
+
+```
+
+for both, the first pc part is enough
+
+```{r}
+cor(pca4.1$x[, 1], pca4.2$x[, 1])
+
+```
+
+
+cannot use both at the same time, highly correlated
+
+
+## Conclusion in collinnearity
+
+In oder to get a global view of collinearity, we draw the picture below:
+
+<img src="imgs/collinearity catalog2.png" width="1000">
+
+We try to put the variable which have collinearity problem at the same level, so they should become the alternative for each other in a model components selection route, and then wouldn't bother each other. But since there are so manny crossed multi-collinearity and unable to be illustrated at the same time, we have to pick them out from the potential model which should include maximum possible variables already. According to this picture we have more than 9000 possible variable combinations, and they all need one more step collinearity check inside it. It seems to be a too huge work to finish. On the other side in our model test we've found that only few of the variables provide efficient information and make real contribution to the model. It should be the same for their alternatives. So it is also unnecessary to try all the possible combinations. 
