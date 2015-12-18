@@ -133,6 +133,7 @@ vis.gam(fcham_t4, theta=-35, view=c("f.sex", "Jday"))
 
 #check the gam
 gam.check(fcham_t4) # all good
+shapiro.test(resid(fcham_t4)) # good
 acf(residuals(fcham_t4)) # all good
 # spatial autocorrelation
 resids <-  residuals(fcham_t1)
