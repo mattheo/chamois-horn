@@ -143,7 +143,6 @@ fcham_t3.3 <- gam(horn ~ Jday*f.sex + s(f.year, bs="re") + s(f.council_cod, bs="
 summary(fcham_t3.3) # Deviance explained = 42.7%
 plot(fcham_t3.3, page=1, scale=F, all=T)
 AIC(fcham_t3.3) # 22348.68
-# no interaction between jday and sex
 ```
 
 There is no interaction between sex and Julian day evident. 
@@ -236,7 +235,7 @@ There is no interaction
 
 #### Elevation as predictor
 
-Next is mean elevation. During exploration we fought this predictor might be the most important after sex, weight and Julian day.
+Next is mean elevation. During exploration we thought this predictor might be the most important after sex, weight and Julian day.
 
 ```{r}
 fcham_e2 <- update(fcham_t4, . ~ . + s(q_media, bs="ts"))
