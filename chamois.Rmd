@@ -1,7 +1,7 @@
 ---
-title: "Chamois"
+title: "Effect of Environmental Predictors on horn sizes of male and female Chamois in the Eastern Italian Alps"
 author: "Franz Johann, Liangwen He, Matthias Theobald"
-date: "18. Dezember 2015"
+date: "18. December 2015"
 output: 
   html_document: 
     fig_caption: yes
@@ -10,30 +10,33 @@ output:
 ---
 
 # About the data
-We have received a dataset of 2679 observations from hunted Chamois in the Eastern Italian Alps in the region of Alto Adige (South Tirol). The shot animals are yearlings culled during the hunting season of their second year. The hunting season is from September to December. The data measured from each individual is 
+We have received a data set of 2679 observations from hunted animals of the species *Rupicapra rupicapra* (Chamois) in the Eastern Italian Alps in the region of Alto Adige (South Tirol). The shot animals are yearlings culled during the hunting season of their second year. The hunting season is from September to December. The data measured from each individual is 
+
 - horn length,
 - weight, and
 - sex.
 
 ?density ?Jday
 
-Also included in the dataset is the council where the animal was shot, which in turn belongs to one of five administrative areas. Furthermore, there are environmental data, aggregated at the level of either council or area.
+Also included in the data set is the council where the animal was shot, which in turn belongs to one of five administrative areas. Furthermore, there are environmental data, aggregated at the level of either council or area.
 
 ## Description of Environmental Data
 
-We have the geographic coordinate, elevation and aspect for each council. In the area level the substrate is seperated to two categories: siliceous and calcareous. As for weather data we have in the global climate scale North Atlantic Oscillation(nao) index, in the local scale there are particular temperature and precipitation for each season covered by the life history of killed chamois. The Normalized Difference Vegetation Index(NDVI) was used to reflect the food supply for chamois.
+We have the geographic coordinate, elevation and aspect for each council. In the area level the substrate is separated to two categories: siliceous and calcareous. As for weather data we have in the global climate scale North Atlantic Oscillation(nao) index, in the local scale there are particular temperature and precipitation for each season covered by the life history of killed chamois. The Normalized Difference Vegetation Index(NDVI) was used to reflect the food supply for chamois.
+
 ## Struggling with Data
 
-The first dataset we received only included partial weather data. First, we wanted to know about the weather conditions of the winter during the pregnancy of the mother (first winter) but we only had data about the weather of the winter the yearling experienced (second winter).
+The first data set we received only included partial weather data. First, we wanted to know about the weather conditions of the winter during the pregnancy of the mother (first winter) but we only had data about the weather of the winter the yearling experienced (second winter).
 Second, there was no weather data about the autumn the yearling experienced.
 Third, while exploring the data, we found several inconsistencies in the weather data.
 
-Because of that, we asked for a larger dataset including the weather data of the first winter during pregnancy and also asked for clarification on the issues with the weather station. We received a second dataset where the requested information was provided, but 1100 obsverations of shot animals were removed, so only 1560 were available. The researchers responsible for the data argued that probably the removed data was not reliable. Our argument though is that each and every observation is useful and should be included in the model.
-We therefore set out to work on merging the two datasets and filling the holes in the old dataset with meaningful weather data from the second dataset.
+Because of that, we asked for a larger data set including the weather data of the first winter during pregnancy and also asked for clarification on the issues with the weather station. We received a second data set where the requested information was provided, but 1100 observations of shot animals were removed, so only 1560 were available. The researchers responsible for the data argued that probably the removed data was not reliable. Our argument though is that each and every observation is useful and should be included in the model.
+We therefore set out to work on merging the two data sets and filling the holes in the old data set with meaningful weather data from the second data set.
 
 ## More Problem with Data
-When we are trying to bring the two dataset together, we found that the relationships between the weather data of different areas are unsteady, which actually should have some equality because of the sharing of same weather stations. The result turn out to be that since not all the stations are at work in the same time, some councils have to even borrow weather data from other area, when the own weather station next to it is closed. This is a serious problem, we can now no more maitain that the weather data for each council is true.
-To deal with this problem, we try to find out one council sample, which on one side has insisted with the weather data from one station continuously from 2005 to 2012, and on the other side can be representative of the whole research area considering its elevation(finally council 39). Then we generalizing its weather data to the whole reasearch area for each year. At last we would introduce an interaction between elevation and aspect, which should reflect the ture variance of weather in different councils.
+
+When we are trying to bring the two data set together, we found that the relationships between the weather data of different areas are unsteady, which actually should have some equality because of the sharing of same weather stations. The result turn out to be that since not all the stations are at work in the same time, some councils have to even borrow weather data from other area, when the own weather station next to it is closed. This is a serious problem, we can now no more maintain that the weather data for each council is true.
+To deal with this problem, we try to find out one council sample, which on one side has insisted with the weather data from one station continuously from 2005 to 2012, and on the other side can be representative of the whole research area considering its elevation(finally council 39). Then we generalizing its weather data to the whole research area for each year. At last we would introduce an interaction between elevation and aspect, which should reflect the true variance of weather in different councils.
 
 ```{r loading data, echo=FALSE, include=FALSE}
 # load libraries
