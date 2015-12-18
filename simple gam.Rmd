@@ -1,7 +1,7 @@
 ---
 title: "Untitled"
 author: "Franz Johann, Liangwen He, Matthias Theobald"
-date: "18. Dezember 2015"
+date: "18. December 2015"
 output: 
   html_document: 
     number_sections: yes
@@ -10,7 +10,7 @@ output:
 
 ### Tiny GAMs
 
-Since our data exploration and random forest revealed that weight, sex and Jday were explaining the most variance and our check for collinearity revealed taht those remaining predictors were showing high collinearity, we decided to try an approach where we tested for each predictor in an independent model including mixed effects of year and council.
+Since our data exploration and random forest revealed that weight, sex and Julian day were explaining the most variance and our check for collinearity revealed that those remaining predictors were showing high collinearity, we decided to try an approach where we tested for each predictor in an independent model including mixed effects of year and council.
 
 ```{r include=FALSE}
 library(mgcv)
@@ -33,7 +33,7 @@ plot(fcham_t0, page=1, scale=F, all=T)
 AIC(fcham_t0) # 23472.28
 gam.check(fcham_t0)
 ```
-The reiduals allready look fine, there might be a slight problem considering normality of the random intercepts, but it should be fine. However, considering the spatial nature of our data we might have spatial autocorrelation
+The residuals already look fine, there might be a slight problem considering normality of the random intercepts, but it should be fine. However, considering the spatial nature of our data we might have spatial autocorrelation
 
 ```{r spatial autocrrelation null model}
 # spatial autocorrelation
@@ -83,7 +83,7 @@ AIC(fcham_t2) # 23085.26
 gam.check(fcham_t2)
 ```
 
-The residuals as well as the intercepts of our random intercepts don't look so good here, but are still 'ok'. Weight on itself does not eplains as much deviance as sex does. The AIC lies between null model and sex model.
+The residuals as well as the intercepts of our random intercepts don't look so good here, but are still 'OK'. Weight on itself does not explains as much deviance as sex does. The AIC lies between null model and sex model.
 
 
 #### Adding Julian day to the null model
@@ -98,7 +98,7 @@ AIC(fcham_t3) # 23439.6
 gam.check(fcham_t3)
 ```
 
-Julian day has a clear linear effect on horn size. This makes sense because the horn of the animals still keeps on growing during the hunting sason. Because of its linearity, Julian day can and should be moved to the linear part of the model.
+Julian day has a clear linear effect on horn size. This makes sense because the horn of the animals still keeps on growing during the hunting season. Because of its linearity, Julian day can and should be moved to the linear part of the model.
 
 ```{r gam Jday linear}
 fcham_t3.1 <- gam(horn ~ Jday + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)
@@ -201,7 +201,7 @@ Now this model explains 52.4% of deviance which, as we will later see, is about 
 
 From here on we followed to approaches: 
 
- 1. We built a full model including as many predictors as possible without running into collineraity issues (complex GAMs). We then split the dataset into females and males, using the complex model and doing model selection, trying to find the most important environmental predictor for either sex.
+ 1. We built a full model including as many predictors as possible without running into collineraity issues (complex GAMs). We then split the data set into females and males, using the complex model and doing model selection, trying to find the most important environmental predictor for either sex.
  2. We added single environmental predictors one after the other to the above final model structure and looked for a better model fit (simple GAMs). We then tested for interactions of that environmental predictor with sex to see if males and females react differently to that predictor.
  
 ### Simple GAMs
@@ -329,8 +329,8 @@ AIC(fcham_t4) # 21862.54
 gam.check(fcham_e4)
 ```
 
-Again, some predictors like Snow duration during both winters and maximum winter temperatures are signiifcant predictors, but they are adding nothing to the model in terms of deviance explained.
+Again, some predictors like Snow duration during both winters and maximum winter temperatures are significant predictors, but they are adding nothing to the model in terms of deviance explained.
 
 
 ### Summary
-At this point, we ran out of time to try for more combinations, but the picture seems to be clear. Most variance is explained by three main predcitors sex, weight and Julian day.
+At this point, we ran out of time to try for more combinations, but the picture seems to be clear. Most variance is explained by three main predictors sex, weight and Julian day.
