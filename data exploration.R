@@ -9,8 +9,8 @@ attach(db)
 
 # Getting to know the data
 
-female<-subset(db,sex==1)#1218
-male<-subset(db,sex==2)#1461
+# female<-subset(db,sex==1)#1218
+# male<-subset(db,sex==2)#1461
 #The dataset represents 1218 female and 1461 male chamois
 
 
@@ -25,9 +25,10 @@ diff(horn_sex) # difference = 22.4 mm
 # change over the years
 (horn_sexyear <- with(db, tapply(horn, list(year, f.sex), mean)))
 apply(horn_sexyear, 2, summary)
-(apply(horn_sexyear, 2, sd))
+apply(horn_sexyear, 2, sd)
 # males have less variance in mean horn length over the years
 boxplot(horn_sexyear, ylab="Hornlength [mm]", main="Mean Hornlength over years")
+
 
 
 # Variance of horn size in sexes
@@ -116,14 +117,16 @@ vis.gam(fm_spatial_ele, plot.type = "contour", main="Elevation", xlab="", ylab="
 
 ## effect of weight on horn length ####################
 
-fgam1<-gam(horn~s(weight, bs="cs"),data=db)
-summary(fgam1) # 11% of deviance explained; quite a lot for one predictor
+flm1<-lm(horn~weight, data=db)
+summary(flm1) # 11% of deviance explained; quite a lot for one predictor
 plot(horn~weight, data=db)
-plot(fgam1)
+abline(flm1)
 
 # weight horn sex
 mwhs<-gam(horn~s(weight)+f.sex+s(q_media),data=db)
-vis.gam(mwhs,theta =40, main ="Horn~Weight+Sex", zlab="hornlength",xlab ="female          male")
+summary(mwhs)
+plot(mwhs)
+vis.gam(mwhs,theta =-40, main ="Horn~Weight+Sex", zlab="hornlength",xlab ="female          male")
 gam.check(mwhs)#model check, not great but accepable at this point. There are not all relevant variables included so far
 
 

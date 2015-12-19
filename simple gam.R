@@ -136,7 +136,7 @@ gam.check(fcham_t4) # all good
 shapiro.test(resid(fcham_t4)) # good
 acf(residuals(fcham_t4)) # all good
 # spatial autocorrelation
-resids <-  residuals(fcham_t1)
+resids <-  residuals(fcham_t4)
 resids.spdf <- SpatialPointsDataFrame(coords=cbind(db$x.council + runif(nrow(db), min=-150, max=300), db$y.council +  runif(nrow(db), min=-300, max=150)), data=data.frame(resids))
 bubble(resids.spdf, maxsize=10)
 # all good!
@@ -147,6 +147,14 @@ fcham_t4.1 <- gam(horn ~ f.sex*poly(weight, 2) + Jday + s(f.year, bs="re") + s(f
 summary(fcham_t4.1) # Deviance explained = 52.4%
 summary(fcham_t4)
 AIC(fcham_t4.1)
+
+
+
+
+fcham_t4.2 <- gam(horn ~ f.sex + s(weight, bs="ts", by=f.sex) + Jday + s(q_media, bs="ts") + s(f.year, bs="re"), data=db, REML=F)
+summary(fcham_t4.2)
+AIC(fcham_t4.2)
+plot(fcham_t4.2)
 
 # substrate ##############
 fcham_t5 <- gam(horn ~ f.substrate + s(f.year, bs="re") + s(f.council_cod, bs="re"), data=db, REML=F)

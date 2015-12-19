@@ -12,7 +12,7 @@ fcham1 <- gam(horn ~ f.sex + s(x.council, y.council) + s(Jday) + s(q_media, bs="
 summary(fcham1)
 
 # simple GAMM with random effects and the most important predictors
-fgamm_s1 <- gamm4(horn ~ f.sex + s(weight, bs="cs") + s(Jday, bs="cs") + s(x.council, y.council) + s(q_media, bs="ts"), random= ~ (1|council_cod) + (1|year), data=db, REML=F)
+fgamm_s1 <- gamm4(horn ~ f.sex + s(weight, bs="cs") + s(Jday, bs="cs") + s(q_media, bs="ts"), random= ~ (1|council_cod) + (1|year), data=db, REML=F)
 
 # gamm4 works, but is too slow
 summary(fgamm_s1$gam)

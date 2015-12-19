@@ -232,6 +232,8 @@ AIC(fcham_c6.1) # 21828.76
 # check for temporal autocorrelation
 acf(residuals(fcham_c6.1))
 
+plot(fcham_c6.1)
+
 # kick out temp summer1 mean ###################
 # check collinearity
 f_c5.2 <- update(f_c5, . ~ .  -tsummer1.mean)
